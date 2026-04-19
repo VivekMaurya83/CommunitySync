@@ -120,15 +120,15 @@ CommunitySync operates on a **5-stage automated pipeline** that eliminates manua
 
 | Dashboard | Needs Page |
 |:---------:|:----------:|
-| ![Dashboard](./screenshots/dashboard.png) | ![Needs](./screenshots/needs.png) |
+| <img width="1911" height="969" alt="Screenshot 2026-04-19 171724" src="https://github.com/user-attachments/assets/094aad04-b2a6-42d7-a299-57919f475875" /> | <img width="1905" height="956" alt="Screenshot 2026-04-19 171752" src="https://github.com/user-attachments/assets/0f4ccc0f-8297-41ab-8524-84d6b1b9500b" /> |
 
 | Volunteers Page | Upload Report |
 |:---------------:|:-------------:|
-| ![Volunteers](./screenshots/volunteers.png) | ![Upload](./screenshots/upload.png) |
+| <img width="1918" height="957" alt="Screenshot 2026-04-19 171935" src="https://github.com/user-attachments/assets/33cf6a5a-36dc-48db-b478-29852ebe7ca6" /> | <img width="1643" height="913" alt="Screenshot 2026-04-19 171816" src="https://github.com/user-attachments/assets/fceaa7bd-8fae-4788-a56a-83dc34d98ade" /> |
 
 | Login Page | Profile Settings |
 |:----------:|:----------------:|
-| ![Login](./screenshots/login.png) | ![Profile](./screenshots/profile.png) |
+| <img width="1918" height="968" alt="Screenshot 2026-04-19 171956" src="https://github.com/user-attachments/assets/de2f64c5-e43c-44bd-821d-3d688fb95a4b" /> | <img width="1916" height="916" alt="Screenshot 2026-04-19 171838" src="https://github.com/user-attachments/assets/519d49f5-91a2-45b1-9694-aff11cf3cd57" /> |
 
 </div>
 
