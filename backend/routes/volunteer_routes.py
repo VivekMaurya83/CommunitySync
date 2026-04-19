@@ -1,15 +1,18 @@
 """
-Volunteer routes – Add and list volunteers.
+Volunteer routes – Add, list, update, and delete volunteers.
+Includes admin-only endpoints for update and delete.
 """
 
 import logging
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from database import get_db
+from models.user import User
 from models.volunteer import Volunteer
-from schemas.volunteer_schema import VolunteerCreate, VolunteerResponse
+from schemas.volunteer_schema import VolunteerCreate, VolunteerUpdate, VolunteerResponse
+from dependencies.auth_dependency import get_current_user, get_current_admin
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Volunteers"])
@@ -21,12 +24,14 @@ def add_volunteer(
     db: Session = Depends(get_db),
 ):
     """
-    Register a new volunteer.
+    Register a new volunteer (public endpoint).
 
     **Sample request body:**
     ```json
     {
         "name": "Priya Sharma",
+        "email": "priya@example.com",
+        "mobile_number": "+919876543210",
         "skills": ["medical", "first_aid", "logistics"],
         "location": "Mumbai, India",
         "latitude": 19.076,
@@ -38,6 +43,8 @@ def add_volunteer(
     """
     volunteer = Volunteer(
         name=payload.name,
+        email=payload.email,
+        mobile_number=payload.mobile_number,
         skills=payload.skills,
         location=payload.location,
         latitude=payload.latitude,
@@ -69,7 +76,6 @@ def list_volunteers(
     if available is not None:
         query = query.filter(Volunteer.availability == available)
     if skill:
-        # PostgreSQL ARRAY contains — matches volunteers who have the skill
         query = query.filter(Volunteer.skills.any(skill.lower()))
 
     volunteers = query.order_by(Volunteer.name).offset(skip).limit(limit).all()
@@ -83,3 +89,63 @@ def get_volunteer(volunteer_id: int, db: Session = Depends(get_db)):
     if not volunteer:
         raise HTTPException(status_code=404, detail=f"Volunteer with id {volunteer_id} not found")
     return volunteer
+
+
+# ── Admin-Only Endpoints ─────────────────────────────────────────
+
+@router.put("/volunteer/{volunteer_id}", response_model=VolunteerResponse)
+def update_volunteer(
+    volunteer_id: int,
+    payload: VolunteerUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+):
+    """
+    **[ADMIN ONLY]** Update a volunteer's details.
+
+    Only provided fields are updated; omitted fields remain unchanged.
+
+    **Sample request:**
+    ```json
+    {
+        "email": "new_email@example.com",
+        "mobile_number": "+919876543210",
+        "skills": ["medical", "logistics"],
+        "availability": false
+    }
+    ```
+    """
+    volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+    if not volunteer:
+        raise HTTPException(status_code=404, detail=f"Volunteer with id {volunteer_id} not found")
+
+    # Update only provided fields
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(volunteer, field, value)
+
+    db.commit()
+    db.refresh(volunteer)
+
+    logger.info("Admin %s updated volunteer id=%d", current_user.email, volunteer_id)
+    return volunteer
+
+
+@router.delete("/volunteer/{volunteer_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_volunteer(
+    volunteer_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+):
+    """
+    **[ADMIN ONLY]** Delete a volunteer.
+    """
+    volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+    if not volunteer:
+        raise HTTPException(status_code=404, detail=f"Volunteer with id {volunteer_id} not found")
+
+    db.delete(volunteer)
+    db.commit()
+
+    logger.info("Admin %s deleted volunteer id=%d", current_user.email, volunteer_id)
+    return None

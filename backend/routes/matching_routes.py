@@ -1,9 +1,10 @@
 """
 Matching routes – Match volunteers to needs + dashboard analytics.
+Sends email and WhatsApp notifications on assignment via BackgroundTasks.
 """
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -12,16 +13,23 @@ from models.need import Need, NeedStatus
 from models.volunteer import Volunteer
 from schemas.volunteer_schema import MatchResult
 from services.matching_service import find_best_volunteer
+from services.email_service import send_assignment_email
+from services.whatsapp_service import send_assignment_whatsapp
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Matching & Analytics"])
 
 
 @router.post("/match/{need_id}", response_model=MatchResult)
-def match_volunteer(need_id: int, db: Session = Depends(get_db)):
+def match_volunteer(
+    need_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     """
     Find and assign the best available volunteer for a given need.
     Updates the need status to 'assigned' and marks the volunteer as unavailable.
+    Sends email + WhatsApp notifications in the background.
 
     **Sample response:**
     ```json
@@ -70,6 +78,29 @@ def match_volunteer(need_id: int, db: Session = Depends(get_db)):
     logger.info("Matched need %d → volunteer %d (%s), score=%.4f",
                 need_id, result["volunteer_id"], result["volunteer_name"], result["match_score"])
 
+    # ── Send notifications in background ─────────────────────────
+    if volunteer:
+        # Email notification
+        if volunteer.email:
+            background_tasks.add_task(
+                send_assignment_email,
+                volunteer_email=volunteer.email,
+                volunteer_name=volunteer.name,
+                category=need.category,
+                location=need.location,
+                priority_score=need.priority_score,
+            )
+
+        # WhatsApp notification
+        if volunteer.mobile_number:
+            background_tasks.add_task(
+                send_assignment_whatsapp,
+                to_number=volunteer.mobile_number,
+                volunteer_name=volunteer.name,
+                category=need.category,
+                location=need.location,
+            )
+
     return MatchResult(
         need_id=need_id,
         volunteer_id=result["volunteer_id"],
@@ -96,17 +127,8 @@ def dashboard(db: Session = Depends(get_db)):
         "high_priority_needs": 30,
         "total_volunteers": 35,
         "available_volunteers": 20,
-        "category_breakdown": {
-            "food": 15,
-            "medical": 20,
-            "water": 10,
-            "shelter": 8
-        },
-        "urgency_breakdown": {
-            "high": 30,
-            "medium": 25,
-            "low": 20
-        },
+        "category_breakdown": { "food": 15, "medical": 20 },
+        "urgency_breakdown": { "high": 30, "medium": 25, "low": 20 },
         "average_priority_score": 62.5
     }
     ```

@@ -2,7 +2,7 @@
 Smart Resource Allocation – Data-Driven Volunteer Coordination System
 
 Main FastAPI application entry point.
-Run with: uvicorn app.main:app --reload
+Run with: uvicorn main:app --reload
 """
 
 import logging
@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from database import init_db
-from routes import need_routes, volunteer_routes, matching_routes
+from routes import need_routes, volunteer_routes, matching_routes, auth_routes
 
 # ── Logging setup ────────────────────────────────────────────────
 
@@ -30,8 +30,12 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Run startup/shutdown logic."""
     logger.info("🚀 Starting %s v%s", settings.APP_TITLE, settings.APP_VERSION)
+    # Import all models so Base.metadata knows about them before create_all
+    import models.need      # noqa: F401
+    import models.volunteer  # noqa: F401
+    import models.user       # noqa: F401
     init_db()
-    logger.info("✅ Database tables initialised")
+    logger.info("✅ Database tables initialised (needs, volunteers, users)")
     yield
     logger.info("🛑 Shutting down")
 
@@ -44,7 +48,9 @@ app = FastAPI(
     description=(
         "A data-driven backend for NGO volunteer coordination. "
         "Accepts raw survey reports, processes them with NLP to extract structured needs, "
-        "computes priority scores, and matches the best available volunteers."
+        "computes priority scores, and matches the best available volunteers.\n\n"
+        "**Features:** JWT Authentication, RBAC (admin/volunteer/ngo), "
+        "Email & WhatsApp notifications on volunteer assignment."
     ),
     docs_url="/docs",
     redoc_url="/redoc",
@@ -63,6 +69,7 @@ app.add_middleware(
 
 # ── Route registration ──────────────────────────────────────────
 
+app.include_router(auth_routes.router)              # /auth/*
 app.include_router(need_routes.router, prefix="/api")
 app.include_router(volunteer_routes.router, prefix="/api")
 app.include_router(matching_routes.router, prefix="/api")

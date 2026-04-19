@@ -1,0 +1,128 @@
+"""
+Email Service – Send emails via SMTP using FastAPI-Mail.
+
+Features:
+  - Volunteer assignment notifications
+  - Registration welcome emails
+  - Generic send_email() helper
+
+Gracefully degrades if email is not configured in .env.
+"""
+
+import logging
+from typing import Optional
+from config import settings
+
+logger = logging.getLogger(__name__)
+
+# ── Lazy-loaded mail config ──────────────────────────────────────
+
+_mail_connection = None
+
+
+def _get_mail():
+    """Lazy-initialize FastAPI-Mail connection."""
+    global _mail_connection
+    if _mail_connection is not None:
+        return _mail_connection
+
+    if not settings.email_configured:
+        logger.warning("Email not configured — EMAIL_USERNAME / EMAIL_PASSWORD missing in .env")
+        return None
+
+    try:
+        from fastapi_mail import FastMail, ConnectionConfig
+
+        conf = ConnectionConfig(
+            MAIL_USERNAME=settings.EMAIL_USERNAME,
+            MAIL_PASSWORD=settings.EMAIL_PASSWORD,
+            MAIL_FROM=settings.EMAIL_FROM or settings.EMAIL_USERNAME,
+            MAIL_PORT=settings.EMAIL_PORT,
+            MAIL_SERVER=settings.EMAIL_HOST,
+            MAIL_STARTTLS=True,
+            MAIL_SSL_TLS=False,
+            USE_CREDENTIALS=True,
+            VALIDATE_CERTS=True,
+        )
+        _mail_connection = FastMail(conf)
+        return _mail_connection
+    except Exception as e:
+        logger.error("Failed to initialize email: %s", e)
+        return None
+
+
+# ── Public API ───────────────────────────────────────────────────
+
+async def send_email(to: str, subject: str, body: str) -> bool:
+    """
+    Send an email. Returns True if sent, False if email is not configured or fails.
+
+    Args:
+        to: Recipient email address.
+        subject: Email subject line.
+        body: HTML email body.
+    """
+    fm = _get_mail()
+    if fm is None:
+        logger.info("[EMAIL SKIPPED] To: %s | Subject: %s (email not configured)", to, subject)
+        return False
+
+    try:
+        from fastapi_mail import MessageSchema, MessageType
+
+        message = MessageSchema(
+            subject=subject,
+            recipients=[to],
+            body=body,
+            subtype=MessageType.html,
+        )
+        await fm.send_message(message)
+        logger.info("[EMAIL SENT] To: %s | Subject: %s", to, subject)
+        return True
+    except Exception as e:
+        logger.error("[EMAIL FAILED] To: %s | Error: %s", to, e)
+        return False
+
+
+async def send_assignment_email(
+    volunteer_email: str,
+    volunteer_name: str,
+    category: str,
+    location: Optional[str],
+    priority_score: float,
+) -> bool:
+    """Send notification when a volunteer is assigned to a need."""
+    subject = f"🚨 New Assignment: {category.title()} Need in {location or 'Unknown Location'}"
+    body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Hello {volunteer_name},</h2>
+        <p>You have been assigned to a new task:</p>
+        <table style="border-collapse: collapse; width: 100%; max-width: 400px;">
+            <tr><td style="padding: 8px; font-weight: bold;">Category:</td><td style="padding: 8px;">{category.title()}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Location:</td><td style="padding: 8px;">{location or 'N/A'}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Priority Score:</td><td style="padding: 8px;">{priority_score}/100</td></tr>
+        </table>
+        <p style="margin-top: 20px;">Please check the dashboard for full details.</p>
+        <p>Thank you for your service!<br>— CommunitySync Team</p>
+    </body>
+    </html>
+    """
+    return await send_email(volunteer_email, subject, body)
+
+
+async def send_welcome_email(email: str, role: str) -> bool:
+    """Send welcome email after registration."""
+    subject = "🎉 Welcome to CommunitySync!"
+    body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Welcome to CommunitySync!</h2>
+        <p>Your account has been created successfully.</p>
+        <p><strong>Role:</strong> {role.title()}</p>
+        <p>You can now log in and start using the platform.</p>
+        <p>— CommunitySync Team</p>
+    </body>
+    </html>
+    """
+    return await send_email(email, subject, body)

@@ -27,6 +27,17 @@ htmlcov/
 Thumbs.db
 .DS_Store
 
-# Misc
+# Utility / one-off scripts (not part of core app)
 fix_imports.py
+add_volunteer.py
+send_notifications.py
+migrate.py
+
+# Logs
 *.log
+
+# Node (for future frontend)
+node_modules/
+
+# Gemini
+.gemini/

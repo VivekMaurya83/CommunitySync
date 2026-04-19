@@ -3,7 +3,7 @@ API Tests – Tests for the Smart Resource Allocation API.
 
 Uses an in-memory SQLite database to avoid requiring PostgreSQL for tests.
 
-Run with: pytest app/tests/test_api.py -v
+Run with: pytest tests/test_api.py -v
 """
 
 import pytest
@@ -19,6 +19,7 @@ from services.priority_service import compute_priority_score
 from services.matching_service import find_best_volunteer
 from models.need import Need, UrgencyLevel, NeedStatus
 from models.volunteer import Volunteer
+from models.user import User
 
 # ── Test Database Setup (SQLite in-memory) ───────────────────────
 
@@ -56,10 +57,16 @@ app.dependency_overrides[get_db] = override_get_db
 # Handle SQLite not supporting ARRAY during table creation
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.dialects.postgresql import ARRAY
+import sqlite3
+import json
 
 @compiles(ARRAY, 'sqlite')
 def compile_array(element, compiler, **kw):
     return "VARCHAR"
+
+# SQLite can't bind Python lists — serialize them as JSON strings
+sqlite3.register_adapter(list, lambda l: json.dumps(l))
+sqlite3.register_converter("VARCHAR", lambda b: json.loads(b.decode()) if b.startswith(b"[") else b.decode())
 
 
 Base.metadata.create_all(bind=engine)
@@ -75,9 +82,27 @@ def clean_tables():
     db = TestSessionLocal()
     db.query(Need).delete()
     db.query(Volunteer).delete()
+    db.query(User).delete()
     db.commit()
     db.close()
     yield
+
+
+# ── Helper: register and login to get token ──────────────────────
+
+def _register_user(email="test@example.com", password="testpass123", role="volunteer"):
+    return client.post("/auth/register", json={
+        "email": email, "password": password, "role": role,
+    })
+
+
+def _login_user(email="test@example.com", password="testpass123"):
+    resp = client.post("/auth/login", json={"email": email, "password": password})
+    return resp.json().get("access_token")
+
+
+def _auth_header(token):
+    return {"Authorization": f"Bearer {token}"}
 
 
 # ── NLP Service Tests ────────────────────────────────────────────
@@ -280,5 +305,123 @@ class TestAPIEndpoints:
         assert data["total_needs"] >= 1
 
 
+# ── Authentication Tests ─────────────────────────────────────────
+
+class TestAuth:
+    """Tests for registration, login, and JWT auth."""
+
+    def test_register_success(self):
+        resp = _register_user()
+        assert resp.status_code == 201
+        data = resp.json()
+        assert data["email"] == "test@example.com"
+        assert data["role"] == "volunteer"
+
+    def test_register_duplicate_email(self):
+        _register_user()
+        resp = _register_user()
+        assert resp.status_code == 400
+        assert "already registered" in resp.json()["detail"]
+
+    def test_login_success(self):
+        _register_user()
+        resp = client.post("/auth/login", json={
+            "email": "test@example.com", "password": "testpass123",
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "access_token" in data
+        assert data["token_type"] == "bearer"
+        assert data["role"] == "volunteer"
+
+    def test_login_wrong_password(self):
+        _register_user()
+        resp = client.post("/auth/login", json={
+            "email": "test@example.com", "password": "wrongpass",
+        })
+        assert resp.status_code == 401
+
+    def test_get_me(self):
+        _register_user()
+        token = _login_user()
+        resp = client.get("/auth/me", headers=_auth_header(token))
+        assert resp.status_code == 200
+        assert resp.json()["email"] == "test@example.com"
+
+    def test_get_me_no_token(self):
+        resp = client.get("/auth/me")
+        assert resp.status_code == 401
+
+
+# ── Admin RBAC Tests ─────────────────────────────────────────────
+
+class TestAdminRBAC:
+    """Tests for admin-only endpoints."""
+
+    def _setup_admin_and_volunteer(self):
+        """Create admin user, volunteer user, and a volunteer record."""
+        _register_user(email="admin@example.com", password="adminpass", role="admin")
+        _register_user(email="vol@example.com", password="volpass", role="volunteer")
+
+        # Add a volunteer record
+        client.post("/api/add-volunteer", json={
+            "name": "Test Volunteer",
+            "skills": ["medical"],
+            "location": "Mumbai",
+            "latitude": 19.076,
+            "longitude": 72.8777,
+        })
+
+        admin_token = _login_user(email="admin@example.com", password="adminpass")
+        vol_token = _login_user(email="vol@example.com", password="volpass")
+        return admin_token, vol_token
+
+    def test_admin_can_update_volunteer(self):
+        admin_token, _ = self._setup_admin_and_volunteer()
+        # Get volunteer ID
+        vols = client.get("/api/volunteers").json()
+        vol_id = vols[0]["id"]
+
+        resp = client.put(f"/api/volunteer/{vol_id}", json={
+            "email": "updated@example.com",
+            "availability": False,
+        }, headers=_auth_header(admin_token))
+        assert resp.status_code == 200
+        assert resp.json()["email"] == "updated@example.com"
+        assert resp.json()["availability"] is False
+
+    def test_volunteer_cannot_update_volunteer(self):
+        _, vol_token = self._setup_admin_and_volunteer()
+        vols = client.get("/api/volunteers").json()
+        vol_id = vols[0]["id"]
+
+        resp = client.put(f"/api/volunteer/{vol_id}", json={
+            "availability": False,
+        }, headers=_auth_header(vol_token))
+        assert resp.status_code == 403
+
+    def test_admin_can_delete_volunteer(self):
+        admin_token, _ = self._setup_admin_and_volunteer()
+        vols = client.get("/api/volunteers").json()
+        vol_id = vols[0]["id"]
+
+        resp = client.delete(f"/api/volunteer/{vol_id}", headers=_auth_header(admin_token))
+        assert resp.status_code == 204
+
+    def test_volunteer_cannot_delete_volunteer(self):
+        _, vol_token = self._setup_admin_and_volunteer()
+        vols = client.get("/api/volunteers").json()
+        vol_id = vols[0]["id"]
+
+        resp = client.delete(f"/api/volunteer/{vol_id}", headers=_auth_header(vol_token))
+        assert resp.status_code == 403
+
+    def test_unauthenticated_cannot_update(self):
+        """No token → 401."""
+        resp = client.put("/api/volunteer/1", json={"availability": False})
+        assert resp.status_code == 401
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

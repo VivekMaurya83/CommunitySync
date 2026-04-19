@@ -12,6 +12,8 @@ from datetime import datetime
 class VolunteerCreate(BaseModel):
     """Schema for registering a new volunteer."""
     name: str = Field(..., min_length=2, max_length=150, description="Volunteer full name")
+    email: Optional[str] = Field(None, description="Volunteer email for notifications")
+    mobile_number: Optional[str] = Field(None, description="Mobile number for WhatsApp (e.g. +919876543210)")
     skills: List[str] = Field(
         ...,
         min_length=1,
@@ -27,6 +29,8 @@ class VolunteerCreate(BaseModel):
         json_schema_extra = {
             "example": {
                 "name": "Priya Sharma",
+                "email": "priya@example.com",
+                "mobile_number": "+919876543210",
                 "skills": ["medical", "first_aid", "logistics"],
                 "location": "Mumbai, India",
                 "latitude": 19.076,
@@ -37,12 +41,27 @@ class VolunteerCreate(BaseModel):
         }
 
 
+class VolunteerUpdate(BaseModel):
+    """Schema for admin to update a volunteer. All fields optional."""
+    name: Optional[str] = Field(None, min_length=2, max_length=150)
+    email: Optional[str] = Field(None)
+    mobile_number: Optional[str] = Field(None)
+    skills: Optional[List[str]] = Field(None, min_length=1)
+    location: Optional[str] = None
+    latitude: Optional[float] = Field(None, ge=-90, le=90)
+    longitude: Optional[float] = Field(None, ge=-180, le=180)
+    availability: Optional[bool] = None
+    rating: Optional[float] = Field(None, ge=0, le=5)
+
+
 # ── Response Schemas ─────────────────────────────────────────────
 
 class VolunteerBase(BaseModel):
     """Shared attributes for Volunteer responses."""
     id: int
     name: str
+    email: Optional[str] = None
+    mobile_number: Optional[str] = None
     skills: List[str]
     location: Optional[str] = None
     latitude: Optional[float] = None
@@ -70,3 +89,4 @@ class MatchResult(BaseModel):
     distance_km: float = Field(..., description="Distance between volunteer and need in km")
     skill_match: float = Field(..., description="Skill similarity score 0-1")
     message: str
+
