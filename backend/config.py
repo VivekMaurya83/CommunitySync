@@ -19,29 +19,29 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # Application
-    APP_TITLE: str = "Smart Resource Allocation API"
-    APP_VERSION: str = "1.0.0"
-    DEBUG: bool = False
+    APP_TITLE: str
+    APP_VERSION: str
+    DEBUG: bool
 
-    # CORS — NO default, must be set in .env
+    # CORS
     CORS_ORIGINS: str
 
     # ── JWT Authentication ───────────────────────────────────────
-    JWT_SECRET: str = "change-me-in-production"
-    JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRY_MINUTES: int = 60
+    JWT_SECRET: str
+    JWT_ALGORITHM: str
+    JWT_EXPIRY_MINUTES: int
 
     # ── Email (SMTP via FastAPI-Mail) ────────────────────────────
-    EMAIL_USERNAME: Optional[str] = None
-    EMAIL_PASSWORD: Optional[str] = None
-    EMAIL_HOST: str = "smtp.gmail.com"
-    EMAIL_PORT: int = 587
-    EMAIL_FROM: Optional[str] = None  # defaults to EMAIL_USERNAME if not set
+    EMAIL_USERNAME: str
+    EMAIL_PASSWORD: str
+    EMAIL_HOST: str
+    EMAIL_PORT: int
+    EMAIL_FROM: str | None = None
 
     # ── Twilio WhatsApp ──────────────────────────────────────────
-    TWILIO_ACCOUNT_SID: Optional[str] = None
-    TWILIO_AUTH_TOKEN: Optional[str] = None
-    TWILIO_PHONE: Optional[str] = None  # e.g. whatsapp:+14155238886
+    TWILIO_ACCOUNT_SID: str
+    TWILIO_AUTH_TOKEN: str
+    TWILIO_PHONE: str
 
     @property
     def cors_origins_list(self) -> List[str]:

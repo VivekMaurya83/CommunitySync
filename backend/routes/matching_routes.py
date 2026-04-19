@@ -111,6 +111,92 @@ def match_volunteer(
         message=f"Volunteer {result['volunteer_name']} assigned to need {need_id}",
     )
 
+from schemas.auth_schema import ManualMatchRequest
+from dependencies.auth_dependency import get_current_admin
+
+@router.post("/match/{need_id}/manual")
+def manual_match_volunteer(
+    need_id: int,
+    payload: ManualMatchRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_admin),
+):
+    """
+    Manually assign a selected volunteer to a need by an Admin.
+    """
+    need = db.query(Need).filter(Need.id == need_id).first()
+    if not need:
+        raise HTTPException(status_code=404, detail=f"Need with id {need_id} not found")
+
+    if need.status == NeedStatus.COMPLETED:
+        raise HTTPException(status_code=400, detail=f"Need {need_id} is already completed")
+
+    volunteer = db.query(Volunteer).filter(Volunteer.id == payload.volunteer_id).first()
+    if not volunteer:
+        raise HTTPException(status_code=404, detail="Volunteer not found")
+        
+    need.status = NeedStatus.ASSIGNED
+    need.assigned_volunteer_id = volunteer.id
+    volunteer.availability = False
+    db.commit()
+
+    logger.info("Admin %s manually matched need %d → volunteer %d", current_user.email, need_id, volunteer.id)
+
+    # Email notification
+    if volunteer.email:
+        background_tasks.add_task(
+            send_assignment_email,
+            volunteer_email=volunteer.email,
+            volunteer_name=volunteer.name,
+            category=need.category,
+            location=need.location,
+            priority_score=need.priority_score,
+        )
+
+    # WhatsApp notification
+    if volunteer.mobile_number:
+        background_tasks.add_task(
+            send_assignment_whatsapp,
+            to_number=volunteer.mobile_number,
+            volunteer_name=volunteer.name,
+            category=need.category,
+            location=need.location,
+        )
+
+    return {"message": f"Volunteer {volunteer.name} successfully assigned."}
+
+
+@router.post("/match/{need_id}/unassign")
+def unassign_volunteer(
+    need_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_admin),
+):
+    """
+    **[ADMIN ONLY]** Unassign a volunteer from a need.
+    Sets need back to 'pending' and marks volunteer as available again.
+    """
+    need = db.query(Need).filter(Need.id == need_id).first()
+    if not need:
+        raise HTTPException(status_code=404, detail=f"Need with id {need_id} not found")
+
+    if need.status != NeedStatus.ASSIGNED:
+        raise HTTPException(status_code=400, detail="Need is not currently assigned")
+
+    # Free the previously assigned volunteer
+    if need.assigned_volunteer_id:
+        old_vol = db.query(Volunteer).filter(Volunteer.id == need.assigned_volunteer_id).first()
+        if old_vol:
+            old_vol.availability = True
+
+    need.status = NeedStatus.PENDING
+    need.assigned_volunteer_id = None
+    db.commit()
+
+    logger.info("Admin %s unassigned need %d", current_user.email, need_id)
+    return {"message": f"Need {need_id} is now unassigned and back to pending."}
+
 
 @router.get("/dashboard")
 def dashboard(db: Session = Depends(get_db)):

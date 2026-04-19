@@ -126,3 +126,39 @@ async def send_welcome_email(email: str, role: str) -> bool:
     </html>
     """
     return await send_email(email, subject, body)
+
+async def send_password_reset_email(email: str, token: str) -> bool:
+    """Send link to reset password."""
+    reset_link = f"http://localhost:3000/reset-password?token={token}"
+    subject = "🔒 Reset Your Password"
+    body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Password Reset Request</h2>
+        <p>You requested to reset your password. Click the link below to set a new password:</p>
+        <p><a href="{reset_link}" style="display:inline-block; padding:10px 20px; background-color:#2563eb; color:white; text-decoration:none; border-radius:5px;">Reset Password</a></p>
+        <p>If you did not request this, please ignore this email. The link expires in 15 minutes.</p>
+        <p>— CommunitySync Team</p>
+    </body>
+    </html>
+    """
+    return await send_email(email, subject, body)
+
+async def send_admin_created_volunteer_email(email: str, temp_password: str) -> bool:
+    """Send welcome email with generated password for admin-created volunteers."""
+    login_link = "http://localhost:3000/login"
+    subject = "👋 Welcome to CommunitySync (Action Required)"
+    body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Welcome to CommunitySync!</h2>
+        <p>An administrator has created a volunteer account for you.</p>
+        <p><strong>Your Email:</strong> {email}</p>
+        <p><strong>Temporary Password:</strong> <code>{temp_password}</code></p>
+        <p>Click the link below to log in, and <b>please update your password and other details</b> in your Profile settings immediately.</p>
+        <p><a href="{login_link}" style="display:inline-block; padding:10px 20px; background-color:#2563eb; color:white; text-decoration:none; border-radius:5px;">Log In Now</a></p>
+        <p>— CommunitySync Team</p>
+    </body>
+    </html>
+    """
+    return await send_email(email, subject, body)

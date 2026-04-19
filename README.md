@@ -1,467 +1,383 @@
-# 🌍 Smart Resource Allocation – Data-Driven Volunteer Coordination System
+<div align="center">
 
-A production-ready **FastAPI** backend that accepts NGO survey reports (raw text or PDF/DOCX files), processes them using **NLP (spaCy)**, converts them into structured needs with priority scores, and matches the best available volunteers using a composite scoring engine.
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/spaCy-09A3D5?style=for-the-badge&logo=spacy&logoColor=white" />
+  <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" />
+  <img src="https://img.shields.io/badge/Twilio-F22F46?style=for-the-badge&logo=twilio&logoColor=white" />
+
+  <br/><br/>
+
+  # 🌍 CommunitySync
+
+  ### Smart Resource Allocation & Volunteer Coordination System
+
+  *An AI-powered, full-stack disaster response platform that transforms unstructured crisis reports into prioritized, actionable assignments — matching the right volunteer to the right need, instantly.*
+
+  <br/>
+
+  **NLP-Driven** · **Real-Time Dashboard** · **Role-Based Access** · **Auto Notifications**
+
+</div>
 
 ---
 
 ## 📑 Table of Contents
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Prerequisites](#-prerequisites)
-- [Setup & Installation](#-setup--installation)
-- [Running the Server](#-running-the-server)
-- [API Endpoints](#-api-endpoints)
-- [Sample API Requests & Responses](#-sample-api-requests--responses)
-- [Running Tests](#-running-tests)
-- [Dummy Data Generation](#-dummy-data-generation)
-- [Core Modules](#-core-modules)
-- [Database Schema](#-database-schema)
-- [Environment Variables](#-environment-variables)
-- [Next Steps / Roadmap](#-next-steps--roadmap)
+- [✨ Features](#-features)
+- [🛠 Tech Stack](#-tech-stack)
+- [🏗 System Architecture](#-system-architecture)
+- [📸 Screenshots](#-screenshots)
+- [📡 API Endpoints](#-api-endpoints)
+- [🚀 Setup & Installation](#-setup--installation)
+- [🔐 Environment Variables](#-environment-variables)
+- [🗺 Usage Flow](#-usage-flow)
+- [🔭 Future Scope](#-future-scope)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
 ---
 
 ## ✨ Features
 
-- **NLP-Powered Report Processing** – Extracts category, urgency, people count, and location from unstructured survey text using spaCy + rule-based keyword matching
-- **File Upload Support** – Upload reports as PDF, DOCX, or TXT files (text is auto-extracted)
-- **Priority Scoring Engine** – Computes 0–100 priority scores based on urgency, people affected, and category weights
-- **Volunteer Matching Engine** – Matches the best volunteer using skill similarity (Jaccard), Haversine distance, and rating
-- **Dashboard Analytics** – Real-time stats: total needs, category/urgency breakdowns, completion rates
-- **Background Tasks** – Async logging via FastAPI BackgroundTasks
-- **CORS Enabled** – Ready for React/frontend integration
-- **Swagger Docs** – Auto-generated interactive API docs at `/docs`
-- **Comprehensive Tests** – 22 tests covering NLP, priority scoring, matching, and API endpoints
+### 🧠 AI & NLP Engine
+- **Natural Language Processing** — Ingests raw, unstructured NGO survey reports using **spaCy** NER and keyword scoring to extract disaster category, urgency level, affected population, and geolocation.
+- **Priority Scoring Engine** — Computes a weighted 0–100 severity index combining urgency (40%), affected scale (40%), and category criticality (20%).
+- **Smart Volunteer Matching** — Algorithmically assigns the optimal volunteer using a composite of **Jaccard Skill Similarity** (50%), **Haversine Proximity** (35%), and **Performance Rating** (15%).
+
+### 🔐 Authentication & Access Control
+- **JWT-Based Auth** — Secure token authentication with configurable expiry for all API interactions.
+- **Role-Based Access Control (RBAC)** — Three distinct user tiers with strictly enforced permissions:
+  - **Admin** — Full system control: create/delete volunteers, match needs (auto or manual), unassign/reassign, view all data.
+  - **NGO** — Upload crisis reports, view dashboard analytics, trigger volunteer matching.
+  - **Volunteer** — View personal dashboard, upload field reports, update profile (location, mobile, password).
+
+### 📬 Notification System
+- **Email Notifications (SMTP)** — Automated HTML emails via `FastAPI-Mail` for assignment alerts, welcome messages, and password reset magic links.
+- **WhatsApp Alerts (Twilio)** — Real-time WhatsApp messages dispatched to volunteers upon task assignment with location and category details.
+
+### 📊 Interactive Frontend
+- **Live Dashboard** — Real-time KPI cards showing total needs, completion rates, category/urgency breakdowns, and volunteer availability.
+- **Needs Management Table** — Searchable, filterable table with status badges, priority scores, and inline volunteer assignment display (`→ Volunteer Name`).
+- **Admin Controls** — Auto Match, Manual Match (dropdown picker), Unassign, and Reassign buttons directly in the interface.
+- **Volunteer Cards** — Visual grid with skill tags, availability status, contact info, and admin delete controls.
+- **Smooth UX** — Shimmer loading states, animated modals, hover transitions, and responsive Tailwind layouts.
+
+### 📄 File Processing
+- **Multi-Format Upload** — Supports **PDF**, **DOCX**, and **TXT** file ingestion with automatic text extraction.
+- **NLP Pipeline** — Uploaded files flow through the same AI extraction pipeline as raw text reports.
+
+### 👤 User Self-Service
+- **Profile Settings** — All users can update their email, mobile number, location, and password.
+- **Forgot Password Flow** — Time-limited JWT reset tokens dispatched via email with a dedicated reset UI.
+- **Data Synchronization** — Profile changes by volunteers automatically propagate to both the `users` and `volunteers` tables.
 
 ---
 
 ## 🛠 Tech Stack
 
-| Component | Technology |
-|-----------|-----------|
-| Framework | FastAPI |
-| Language | Python 3.10 |
-| Database | PostgreSQL |
-| ORM | SQLAlchemy 2.0 |
-| DB Driver | pg8000 (pure Python) |
-| Validation | Pydantic v2 |
-| NLP | spaCy (en_core_web_sm) |
-| File Parsing | PyPDF2, python-docx |
-| Testing | pytest + httpx |
-| Dummy Data | Faker |
-| Server | Uvicorn |
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 18, React Router DOM, Tailwind CSS, Axios, Lucide Icons |
+| **Backend** | FastAPI, Python 3.10, Uvicorn, Pydantic v2 |
+| **Database** | PostgreSQL, SQLAlchemy 2.0, pg8000 (Pure Python Driver) |
+| **AI / NLP** | spaCy (`en_core_web_sm`), Rule-based keyword extraction |
+| **Authentication** | JWT (`python-jose`), bcrypt (`passlib`) |
+| **Email** | FastAPI-Mail (`aiosmtplib`) |
+| **Messaging** | Twilio API (WhatsApp Sandbox / Production) |
+| **File Parsing** | PyPDF2, python-docx |
+| **Testing** | Pytest, httpx, Faker |
 
 ---
 
-## 📁 Project Structure
+## 🏗 System Architecture
+
+CommunitySync operates on a **5-stage automated pipeline** that eliminates manual coordination overhead:
 
 ```
-backend/
-├── main.py                    # FastAPI app entry point, CORS, route registration
-├── config.py                  # Environment-based configuration (pydantic-settings)
-├── database.py                # SQLAlchemy engine, session, Base
-├── generate_dummy_data.py     # Script to seed DB with fake data
-├── pytest.ini                 # Pytest configuration
-├── requirements.txt           # Python dependencies
-├── .env                       # Environment variables (not committed to git)
-│
-├── models/
-│   ├── need.py                # Need ORM model (needs table)
-│   └── volunteer.py           # Volunteer ORM model (volunteers table)
-│
-├── schemas/
-│   ├── need_schema.py         # Pydantic schemas for need request/response
-│   └── volunteer_schema.py    # Pydantic schemas for volunteer + match result
-│
-├── routes/
-│   ├── need_routes.py         # POST /upload-report, /upload-file, GET /needs
-│   ├── volunteer_routes.py    # POST /add-volunteer, GET /volunteers
-│   └── matching_routes.py     # POST /match/{id}, GET /dashboard
-│
-├── services/
-│   ├── nlp_service.py         # spaCy + keyword NLP extraction
-│   ├── priority_service.py    # Weighted priority scoring (0-100)
-│   └── matching_service.py    # Volunteer matching (skill + distance + rating)
-│
-├── utils/
-│   └── location_utils.py      # Haversine formula + city geocoder
-│
-└── tests/
-    └── test_api.py            # 22 pytest tests (NLP, priority, matching, API)
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   📄 REPORT   │────▶│  🧠 NLP       │────▶│  🎯 PRIORITY  │────▶│  🤝 MATCHING  │────▶│  📬 NOTIFY    │
+│   Upload     │     │  Extraction  │     │  Scoring     │     │  Engine      │     │  Email +     │
+│   (Text/PDF) │     │  (spaCy)     │     │  (0-100)     │     │  (Jaccard +  │     │  WhatsApp    │
+│              │     │              │     │              │     │   Haversine) │     │              │
+└──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
 ```
+
+**Data Flow:**
+1. **Report Ingestion** — NGO uploads raw text or PDF/DOCX file describing a crisis situation.
+2. **NLP Extraction** — spaCy + keyword rules extract `category`, `urgency`, `people_affected`, and `location`.
+3. **Priority Scoring** — Weighted formula assigns a 0–100 severity score determining response urgency.
+4. **Volunteer Matching** — Algorithm cross-references skill sets, GPS proximity, and ratings to find the optimal responder.
+5. **Notification Dispatch** — Matched volunteer receives automated Email + WhatsApp alert with deployment details.
 
 ---
 
-## 📋 Prerequisites
+## 📸 Screenshots
 
-1. **Python 3.10** – [Download](https://www.python.org/downloads/)
-2. **PostgreSQL** – [Download](https://www.postgresql.org/download/windows/)
-3. **Git** (optional) – For version control
+<div align="center">
 
----
+| Dashboard | Needs Page |
+|:---------:|:----------:|
+| ![Dashboard](./screenshots/dashboard.png) | ![Needs](./screenshots/needs.png) |
 
-## 🚀 Setup & Installation
+| Volunteers Page | Upload Report |
+|:---------------:|:-------------:|
+| ![Volunteers](./screenshots/volunteers.png) | ![Upload](./screenshots/upload.png) |
 
-### 1. Clone the repository
+| Login Page | Profile Settings |
+|:----------:|:----------------:|
+| ![Login](./screenshots/login.png) | ![Profile](./screenshots/profile.png) |
 
-```bash
-git clone <your-repo-url>
-cd CommunitySync/backend
-```
+</div>
 
-### 2. Create and activate virtual environment
-
-```powershell
-# Windows (PowerShell)
-py -3.10 -m venv venv
-.\venv\Scripts\Activate
-```
-
-```bash
-# Linux / macOS
-python3.10 -m venv venv
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Download spaCy language model
-
-```bash
-python -m spacy download en_core_web_sm
-```
-
-### 5. Create PostgreSQL database
-
-```bash
-psql -U postgres -c "CREATE DATABASE community_sync;"
-```
-
-> **Note:** If `psql` is not on your PATH, use the full path:
-> ```powershell
-> & "C:\Program Files\PostgreSQL\<version>\bin\psql.exe" -U postgres -c "CREATE DATABASE community_sync;"
-> ```
-
-### 6. Configure environment variables
-
-Create a `.env` file in the `backend/` directory:
-
-```env
-DATABASE_URL=postgresql+pg8000://postgres:YOUR_PASSWORD@localhost:5432/community_sync
-APP_TITLE=Smart Resource Allocation API
-APP_VERSION=1.0.0
-DEBUG=True
-CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
-```
-
-> ⚠️ **Replace `YOUR_PASSWORD`** with your actual PostgreSQL password. Special characters must be URL-encoded (e.g., `@` → `%40`).
-
----
-
-## ▶️ Running the Server
-
-```bash
-uvicorn main:app --reload
-```
-
-The server starts at: **http://127.0.0.1:8000**
-
-| URL | Description |
-|-----|-------------|
-| http://127.0.0.1:8000 | Health check |
-| http://127.0.0.1:8000/docs | Swagger UI (interactive API docs) |
-| http://127.0.0.1:8000/redoc | ReDoc (alternative API docs) |
-
-> Database tables are **auto-created** on server startup.
+> 📌 *Place your screenshots in a `/screenshots` directory at the project root.*
 
 ---
 
 ## 📡 API Endpoints
 
-| # | Method | Endpoint | Description |
-|---|--------|----------|-------------|
-| 1 | `GET` | `/` | Health check |
-| 2 | `GET` | `/health` | Detailed health check |
-| 3 | `POST` | `/api/upload-report` | Upload raw text survey report |
-| 4 | `POST` | `/api/upload-file` | Upload PDF/DOCX/TXT report file |
-| 5 | `GET` | `/api/needs` | List all needs (filterable by status, category, urgency) |
-| 6 | `GET` | `/api/needs/{need_id}` | Get a single need by ID |
-| 7 | `POST` | `/api/add-volunteer` | Register a new volunteer |
-| 8 | `GET` | `/api/volunteers` | List all volunteers (filterable) |
-| 9 | `GET` | `/api/volunteers/{id}` | Get a single volunteer by ID |
-| 10 | `POST` | `/api/match/{need_id}` | Match best volunteer to a need |
-| 11 | `GET` | `/api/dashboard` | Analytics dashboard |
+### 🔑 Authentication
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| `POST` | `/auth/register` | Register a new user account | Public |
+| `POST` | `/auth/login` | Authenticate and receive JWT token | Public |
+| `GET` | `/auth/me` | Get current user profile | Authenticated |
+| `PUT` | `/auth/me` | Update profile (email, mobile, location, password) | Authenticated |
+| `POST` | `/auth/forgot-password` | Request password reset email | Public |
+| `POST` | `/auth/reset-password` | Reset password with token | Public |
+
+### 📋 Needs Management
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| `POST` | `/api/upload-report` | Submit raw text report for NLP processing | Authenticated |
+| `POST` | `/api/upload-file` | Upload PDF/DOCX/TXT report file | Authenticated |
+| `GET` | `/api/needs` | List all needs (filterable by status, category, urgency) | Authenticated |
+| `GET` | `/api/needs/{id}` | Get a single need by ID | Authenticated |
+
+### 🤝 Matching & Assignment
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| `POST` | `/api/match/{need_id}` | Auto-match best volunteer (AI scoring) | Admin / NGO |
+| `POST` | `/api/match/{need_id}/manual` | Manually assign a specific volunteer | Admin |
+| `POST` | `/api/match/{need_id}/unassign` | Remove volunteer from a need | Admin |
+
+### 👥 Volunteer Management
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| `GET` | `/api/volunteers` | List all volunteers | Authenticated |
+| `POST` | `/api/volunteer` | Admin-create volunteer (auto-generates password, sends email) | Admin |
+| `DELETE` | `/api/volunteer/{id}` | Delete a volunteer | Admin |
+
+### 📊 Analytics
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| `GET` | `/api/dashboard` | Aggregated analytics (counts, breakdowns, averages) | Authenticated |
 
 ---
 
-## 📝 Sample API Requests & Responses
+## 🚀 Setup & Installation
 
-### POST `/api/upload-report` — Submit a text report
+### Prerequisites
+- **Python 3.10+** — [Download](https://www.python.org/downloads/)
+- **Node.js 18+** — [Download](https://nodejs.org/)
+- **PostgreSQL** — [Download](https://www.postgresql.org/download/)
 
-**Request:**
-```json
-{
-  "raw_text": "Urgent: 200 families in Kathmandu need clean drinking water and medical supplies immediately."
-}
-```
-
-**Response (201):**
-```json
-{
-  "id": 1,
-  "raw_text": "Urgent: 200 families in Kathmandu need clean drinking water and medical supplies immediately.",
-  "category": "water",
-  "urgency": "high",
-  "people_affected": 200,
-  "location": "Kathmandu",
-  "latitude": 27.7172,
-  "longitude": 85.324,
-  "priority_score": 66.0,
-  "status": "pending",
-  "assigned_volunteer_id": null,
-  "created_at": "2026-04-19T10:30:00Z",
-  "updated_at": "2026-04-19T10:30:00Z"
-}
-```
-
----
-
-### POST `/api/upload-file` — Upload a report file
-
-**Request:** `multipart/form-data` with a PDF, DOCX, or TXT file
-
-**Response:** Same as `/upload-report`
-
----
-
-### POST `/api/add-volunteer` — Register a volunteer
-
-**Request:**
-```json
-{
-  "name": "Priya Sharma",
-  "skills": ["medical", "first_aid", "logistics"],
-  "location": "Mumbai, India",
-  "latitude": 19.076,
-  "longitude": 72.8777,
-  "availability": true,
-  "rating": 4.5
-}
-```
-
-**Response (201):**
-```json
-{
-  "id": 1,
-  "name": "Priya Sharma",
-  "skills": ["medical", "first_aid", "logistics"],
-  "location": "Mumbai, India",
-  "latitude": 19.076,
-  "longitude": 72.8777,
-  "availability": true,
-  "rating": 4.5,
-  "created_at": "2026-04-19T10:30:00Z",
-  "updated_at": "2026-04-19T10:30:00Z"
-}
-```
-
----
-
-### POST `/api/match/{need_id}` — Match a volunteer
-
-**Response (200):**
-```json
-{
-  "need_id": 1,
-  "volunteer_id": 5,
-  "volunteer_name": "Priya Sharma",
-  "match_score": 0.7125,
-  "distance_km": 23.45,
-  "skill_match": 0.6667,
-  "message": "Volunteer Priya Sharma assigned to need 1"
-}
-```
-
----
-
-### GET `/api/dashboard` — Analytics
-
-**Response (200):**
-```json
-{
-  "total_needs": 75,
-  "pending_needs": 40,
-  "assigned_needs": 25,
-  "completed_needs": 10,
-  "high_priority_needs": 30,
-  "total_volunteers": 35,
-  "available_volunteers": 20,
-  "category_breakdown": {
-    "food": 15,
-    "medical": 20,
-    "water": 10,
-    "shelter": 8
-  },
-  "urgency_breakdown": {
-    "high": 30,
-    "medium": 25,
-    "low": 20
-  },
-  "average_priority_score": 62.5
-}
-```
-
----
-
-## 🧪 Running Tests
-
+### 1️⃣ Clone the Repository
 ```bash
-pytest tests/test_api.py -v
+git clone https://github.com/your-username/CommunitySync.git
+cd CommunitySync
 ```
 
-Tests use an **in-memory SQLite** database — no PostgreSQL required.
-
-**Test coverage (22 tests):**
-- ✅ NLP extraction (category, urgency, people count, location)
-- ✅ Priority scoring (ranges, ordering, edge cases)
-- ✅ Volunteer matching (proximity, skill match, availability)
-- ✅ API endpoints (upload, list, filter, dashboard)
-
----
-
-## 🗃 Dummy Data Generation
-
-Seed the database with realistic fake data for testing:
-
+### 2️⃣ Database Setup
 ```bash
-python generate_dummy_data.py
+psql -U postgres -c "CREATE DATABASE community_sync;"
 ```
 
-This creates:
-- **75 needs** — from realistic survey report templates across 15 cities
-- **35 volunteers** — with randomized skills, locations, and ratings
+### 3️⃣ Backend Setup
+```bash
+cd backend
 
----
+# Create virtual environment
+python -m venv venv
 
-## 🧠 Core Modules
+# Activate it
+# Windows:
+.\venv\Scripts\Activate
+# macOS/Linux:
+source venv/bin/activate
 
-### 1. NLP Service (`services/nlp_service.py`)
-- Uses **spaCy** for Named Entity Recognition (GPE/LOC entities)
-- **Keyword scoring** to detect category (food, medical, water, shelter, etc.)
-- **Urgency detection** via keyword matching (urgent, critical, emergency → high)
-- **Regex-based** people count extraction (e.g., "200 families" → 200)
+# Install dependencies
+pip install -r requirements.txt
 
-### 2. Priority Engine (`services/priority_service.py`)
+# Download spaCy language model
+python -m spacy download en_core_web_sm
+
+# Configure environment (see section below)
+# Create .env file in backend/
+
+# Start the server
+uvicorn main:app --reload
 ```
-priority_score = (urgency_weight × 40) + (people_factor × 40) + (category_weight × 20)
+> Backend runs at **http://127.0.0.1:8000** — Swagger docs at **http://127.0.0.1:8000/docs**
+
+### 4️⃣ Frontend Setup
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
 ```
-- Urgency: high=1.0, medium=0.6, low=0.3
-- People factor: saturates at 1000 people
-- Category: medical=1.0, water=0.9, food=0.85, shelter=0.75...
+> Frontend runs at **http://localhost:3000**
 
-### 3. Matching Engine (`services/matching_service.py`)
+### 5️⃣ Seed Test Data (Optional)
+```bash
+cd backend
+python test_scripts/generate_dummy_data.py
 ```
-match_score = (skill_score × 0.50) + (distance_score × 0.35) + (rating_score × 0.15)
-```
-- **Skill similarity:** Jaccard index between volunteer skills and category-relevant skills
-- **Distance:** Haversine formula, inverse penalty (closer = higher score)
-- **Rating:** Normalized 0–5 → 0–1
-
----
-
-## 🗄 Database Schema
-
-### `needs` table
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | Integer (PK) | Auto-increment |
-| raw_text | Text | Original survey report |
-| category | String(50) | food, medical, water, shelter, etc. |
-| urgency | Enum | low, medium, high |
-| people_affected | Integer | Number of people impacted |
-| location | String(255) | Human-readable location |
-| latitude | Float | GPS latitude |
-| longitude | Float | GPS longitude |
-| priority_score | Float | Computed score 0–100 |
-| status | Enum | pending, assigned, completed |
-| assigned_volunteer_id | Integer | FK to matched volunteer |
-| created_at | Timestamp | Auto-set |
-| updated_at | Timestamp | Auto-updated |
-
-### `volunteers` table
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | Integer (PK) | Auto-increment |
-| name | String(150) | Full name |
-| skills | String[] | PostgreSQL array of skill tags |
-| location | String(255) | Human-readable location |
-| latitude | Float | GPS latitude |
-| longitude | Float | GPS longitude |
-| availability | Boolean | Currently available? |
-| rating | Float | Performance rating 0–5 |
-| created_at | Timestamp | Auto-set |
-| updated_at | Timestamp | Auto-updated |
 
 ---
 
 ## 🔐 Environment Variables
 
-All sensitive configuration lives in `.env` (never committed to git):
+Create a `.env` file in the `backend/` directory with the following configuration:
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `APP_TITLE` | ❌ | API title (default: Smart Resource Allocation API) |
-| `APP_VERSION` | ❌ | API version (default: 1.0.0) |
-| `DEBUG` | ❌ | Enable debug mode (default: False) |
-| `CORS_ORIGINS` | ✅ | JSON array of allowed origins |
+```env
+# ── Database ─────────────────────────────────────────────────────
+DATABASE_URL=postgresql+pg8000://postgres:YOUR_PASSWORD@localhost:5432/community_sync
+
+# ── Application ──────────────────────────────────────────────────
+APP_TITLE=Smart Resource Allocation API
+APP_VERSION=1.0.0
+DEBUG=True
+CORS_ORIGINS=["http://localhost:3000"]
+
+# ── JWT Authentication ───────────────────────────────────────────
+JWT_SECRET=your-super-secret-key-change-in-production
+JWT_ALGORITHM=HS256
+JWT_EXPIRY_MINUTES=1440
+
+# ── Email (SMTP via FastAPI-Mail) ────────────────────────────────
+EMAIL_USERNAME=your.email@gmail.com
+EMAIL_PASSWORD=your-gmail-app-password
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_FROM=your.email@gmail.com
+
+# ── Twilio WhatsApp ──────────────────────────────────────────────
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE=+14155238886
+```
+
+> ⚠️ **Important:** For Gmail, use an [App Password](https://support.google.com/accounts/answer/185833), not your regular password. For Twilio WhatsApp, recipients must first opt-in via the [Twilio Sandbox](https://console.twilio.com/us1/develop/sms/try-it-out/whatsapp-learn).
 
 ---
 
-## 🗺 Next Steps / Roadmap
+## 🗺 Usage Flow
 
-### Immediate
-- [ ] Add `.gitignore` for `venv/`, `__pycache__/`, `.env`, `.pytest_cache/`
-- [ ] Add Redis caching for matching results
-- [ ] Add authentication (JWT tokens) for API security
-- [ ] Add pagination metadata to list endpoints
+A typical end-to-end user journey through CommunitySync:
 
-### Frontend Integration
-- [ ] Build React/Next.js frontend dashboard
-- [ ] Real-time updates via WebSockets
-- [ ] Map visualization for needs and volunteers (Leaflet/Mapbox)
+```
+👤 Admin/NGO Login
+       │
+       ▼
+📄 Upload Crisis Report (text or PDF/DOCX)
+       │
+       ▼
+🧠 NLP Engine extracts: category, urgency, location, people affected
+       │
+       ▼
+🎯 Priority Score computed (0-100)
+       │
+       ▼
+📊 Need appears on Dashboard with severity ranking
+       │
+       ▼
+🤝 Admin clicks "Auto Match" or "Manual" to assign a volunteer
+       │
+       ▼
+📬 Volunteer receives Email + WhatsApp notification instantly
+       │
+       ▼
+👤 Volunteer views assignment on their dashboard
+       │
+       ▼
+🔄 Admin can Unassign / Reassign at any time
+```
 
-### Advanced Features
-- [ ] Email/SMS notifications when volunteers are matched
-- [ ] Volunteer feedback and rating system after task completion
-- [ ] Historical analytics and trend charts
-- [ ] Multi-language NLP support (Hindi, Bengali, etc.)
-- [ ] AI-powered matching using ML models instead of rule-based scoring
-- [ ] Batch file upload (multiple reports at once)
-- [ ] Role-based access control (admin, NGO coordinator, volunteer)
+### Role-Specific Capabilities
 
-### DevOps
-- [ ] Dockerize the application
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Deploy to cloud (AWS/GCP/Azure)
-- [ ] Database migrations with Alembic
+| Action | Admin | NGO | Volunteer |
+|--------|:-----:|:---:|:---------:|
+| View Dashboard | ✅ | ✅ | ✅ |
+| Upload Reports | ✅ | ✅ | ✅ |
+| View Needs | ✅ | ✅ | ✅ |
+| Auto/Manual Match | ✅ | ✅ | ❌ |
+| Unassign / Reassign | ✅ | ❌ | ❌ |
+| Create Volunteers | ✅ | ❌ | ❌ |
+| Delete Volunteers | ✅ | ❌ | ❌ |
+| View Volunteers List | ✅ | ✅ | ❌ |
+| Edit Own Profile | ✅ | ✅ | ✅ |
+
+---
+
+## 🔭 Future Scope
+
+| Feature | Description |
+|---------|-------------|
+| 🤖 **Predictive Crisis AI** | Ingest weather APIs and geopolitical feeds to proactively generate needs before disasters fully materialize |
+| 📍 **Real-Time Volunteer Tracking** | WebSocket-powered live GPS tracking of deployed volunteers on a Leaflet/Mapbox interactive map |
+| 🏢 **Multi-NGO Federation** | Isolated tenant workspaces allowing multiple NGOs to share volunteer pools while maintaining data sovereignty |
+| 📱 **Mobile Application** | React Native offline-first mobile app for volunteers operating in low-connectivity disaster zones |
+| 📈 **Historical Analytics** | Trend charts, response time tracking, and volunteer performance dashboards with exportable reports |
+| 🌐 **Multi-Language NLP** | Expand NLP extraction to support Hindi, Bengali, Spanish, and other regional languages |
+| 🔄 **Batch Processing** | Upload multiple reports simultaneously with progress tracking and bulk assignment capabilities |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to get started:
+
+1. **Fork** the repository
+2. **Create** your feature branch
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Commit** your changes
+   ```bash
+   git commit -m "Add amazing feature"
+   ```
+4. **Push** to the branch
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+5. **Open** a Pull Request
 
 ---
 
 ## 📄 License
 
-MIT License
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 👥 Contributors
+<div align="center">
 
-- Vivek Maurya
+  **Built with ❤️ for communities that need it most.**
+
+  <br/>
+
+  ⭐ *Star this repo if you found it useful!* ⭐
+
+</div>

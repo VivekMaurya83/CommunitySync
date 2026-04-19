@@ -61,8 +61,30 @@ class UserResponse(BaseModel):
     id: int
     email: str
     role: UserRole
+    mobile_number: Optional[str] = None
+    location: Optional[str] = None
     is_active: bool
     created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+class UserUpdateProfile(BaseModel):
+    """Update profile request payload."""
+    email: Optional[str] = None
+    password: Optional[str] = None
+    mobile_number: Optional[str] = None
+    location: Optional[str] = None
+
+class ForgotPasswordRequest(BaseModel):
+    """Forgot password request payload."""
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    """Reset password request payload."""
+    token: str
+    new_password: str = Field(..., min_length=6)
+
+class ManualMatchRequest(BaseModel):
+    """Admin manual volunteer matching payload."""
+    volunteer_id: int

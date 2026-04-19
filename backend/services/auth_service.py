@@ -65,6 +65,27 @@ def decode_access_token(token: str) -> Optional[dict]:
         return None
 
 
+import secrets
+
+def generate_reset_token(db: Session, user: User) -> str:
+    """Generate a random token, store it in user record, and return it."""
+    token = secrets.token_urlsafe(32)
+    user.reset_token = token
+    user.reset_token_expiry = datetime.now(timezone.utc) + timedelta(minutes=15)
+    db.commit()
+    return token
+
+def verify_reset_token(db: Session, token: str) -> Optional[User]:
+    """Verify reset token and return the user if valid and not expired."""
+    user = db.query(User).filter(User.reset_token == token).first()
+    if not user:
+        return None
+    # Check expiry (make sure we compare offset-aware datetimes)
+    if not user.reset_token_expiry or user.reset_token_expiry < datetime.now(timezone.utc):
+        return None
+    return user
+
+
 # ── User CRUD helpers ────────────────────────────────────────────
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:

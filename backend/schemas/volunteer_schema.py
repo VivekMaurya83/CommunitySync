@@ -41,6 +41,11 @@ class VolunteerCreate(BaseModel):
         }
 
 
+class AdminVolunteerCreate(BaseModel):
+    """Schema for admin creating a volunteer with just email and skills."""
+    email: str = Field(..., description="Volunteer email for login and notifications")
+    skills: List[str] = Field(..., min_length=1)
+
 class VolunteerUpdate(BaseModel):
     """Schema for admin to update a volunteer. All fields optional."""
     name: Optional[str] = Field(None, min_length=2, max_length=150)

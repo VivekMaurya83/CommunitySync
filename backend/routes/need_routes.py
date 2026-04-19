@@ -174,6 +174,8 @@ def list_needs(
     List all needs with optional filters.
     Sorted by priority_score descending (highest priority first).
     """
+    from models.volunteer import Volunteer
+
     query = db.query(Need)
 
     if status:
@@ -184,7 +186,18 @@ def list_needs(
         query = query.filter(Need.urgency == urgency)
 
     needs = query.order_by(Need.priority_score.desc()).offset(skip).limit(limit).all()
-    return needs
+
+    # Enrich with volunteer names
+    results = []
+    for need in needs:
+        data = NeedResponse.model_validate(need)
+        if need.assigned_volunteer_id:
+            vol = db.query(Volunteer).filter(Volunteer.id == need.assigned_volunteer_id).first()
+            if vol:
+                data.assigned_volunteer_name = vol.name
+        results.append(data)
+
+    return results
 
 
 @router.get("/needs/{need_id}", response_model=NeedResponse)
