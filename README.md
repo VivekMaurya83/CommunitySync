@@ -1,237 +1,577 @@
-# 🌍 CrisisNexus — Federated Multi-NGO Crisis Coordination Platform
+<div align="center">
 
-> **Revolutionizing Disaster Relief through Real-Time Collaboration.**  
-> CrisisNexus is a state-of-the-art crisis management system that bridges the gap between Admins, NGOs, and Volunteers. By leveraging a federated model, it enables multiple organizations to work together seamlessly on large-scale disasters.
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Groq LLM](https://img.shields.io/badge/Groq_LLM-FF6B35?style=for-the-badge&logo=meta&logoColor=white)
+![spaCy](https://img.shields.io/badge/spaCy-09A3D5?style=for-the-badge&logo=spacy&logoColor=white)
+![OpenCage](https://img.shields.io/badge/OpenCage-2ECC71?style=for-the-badge&logo=openstreetmap&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Twilio](https://img.shields.io/badge/Twilio-F22F46?style=for-the-badge&logo=twilio&logoColor=white)
 
----
+<br/><br/>
 
-## 📋 Table of Contents
+# 🌍 CommunitySync
 
-1.  [🎯 Core Mission & Functionalities](#-core-mission--functionalities)
-2.  [✨ Advanced Platform Features](#-advanced-platform-features)
-3.  [👥 System Views & Functionalities](#-system-views--functionalities)
-4.  [🚀 Comprehensive Setup Guide](#-comprehensive-setup-guide)
-    - [Step 1: Prerequisites](#step-1-prerequisites)
-    - [Step 2: Database Initialization](#step-2-database-initialization)
-    - [Step 3: Backend Configuration](#step-3-backend-configuration)
-    - [Step 4: Frontend Configuration](#step-4-frontend-configuration)
-5.  [🛠 Running the Codebase](#-running-the-codebase)
-6.  [📁 Project Architecture](#-project-architecture)
-7.  [🐛 Troubleshooting & Support](#-troubleshooting--support)
+### Smart Resource Allocation & Volunteer Coordination System
 
----
+*An AI-powered, full-stack disaster response platform that transforms unstructured crisis reports into prioritized, actionable assignments — matching the right volunteer to the right need, instantly. Powered by a hybrid NLP pipeline combining Groq LLM + rule-based extraction + OpenCage geocoding.*
 
-## 🎯 Core Mission & Functionalities
+<br/>
 
-CrisisNexus is designed to handle "Federated Relief Operations". In most systems, a task is assigned to one organization. In CrisisNexus, a single crisis "Need" (e.g., "Flooding in North Kerala") can be assigned to **multiple NGOs** simultaneously. 
+**Groq LLM + Rule-Based NLP** · **Volunteer Approval Workflow** · **OpenCage Geocoding** · **Task Lifecycle Tracking** · **Role-Based Access** · **Auto Notifications** · **Workload-Aware Matching** · **Interactive Audit Trails** · **Geospatial Intelligence** · **Gamification**
 
-### Key Capabilities:
-- **Consensus-Driven Completion**: A task is only officially "Completed" once every participating NGO confirms their part is done.
-- **Volunteer Lending (Pool)**: NGO A can "borrow" volunteers from NGO B if they are overwhelmed, ensuring no manpower goes to waste.
-- **Smart Inventory**: A centralized resource pool fed by individual NGO contributions with automated item merging.
+</div>
 
 ---
 
-## ✨ Advanced Platform Features
+## 📑 Table of Contents
 
-### 🕒 Interactive Audit Trails (Slide-in Panel)
-Every task tracks its own history. Using the **Audit Trail Panel**, you can see:
-- Who created the task and when.
-- Which NGOs accepted the assignment.
-- Which resources (trucks, food, etc.) were allocated.
-- Exactly which volunteer clicked the "Complete" button.
-
-### 🗺️ Geospatial Intelligence & Heatmap
-A fully integrated, interactive map powered by OpenStreetMap and React-Leaflet. It auto-clusters crisis markers to prevent UI clutter and features a dynamic density Heatmap layer that visually highlights high-priority disaster zones based on urgency and affected population.
-
-### 📄 Hybrid OCR & Gemini Pre-Validation Engine
-- **Image Preprocessing**: Automatically handles and parses uploaded images and scanned PDFs of handwritten reports via an EasyOCR-powered pipeline.
-- **Smart Validation Gate**: A high-speed, fully asynchronous pre-pipeline LLM layer powered by **Google Gemini (gemini-2.5-flash)** in JSON mode ensures that only authentic, actionable disaster reports are processed, drastically reducing database spam.
-
-### 🎨 Modern & Responsive UI
-The entire frontend is built on a robust design system utilizing **pure Tailwind CSS utility classes**. Legacy inline styles have been entirely stripped out, ensuring a visually unified, performant, and easily maintainable codebase across all pages—from the Admin mapping view to the mobile-responsive Volunteer dashboard.
-
-### 📦 Automated Inventory Merging
-When an NGO contributes resources, the system automatically checks for existing entries. If you contribute "Rice" and "Rice" already exists, the quantities are merged, maintaining a clean and efficient warehouse view.
-
-### 🏆 Gamification & Incentives
-- **Performance Points**: Earned by volunteers for every task.
-- **The Pool Bonus**: Volunteers who assist "borrowing" NGOs receive **extra points**, incentivizing cross-organization help.
-- **Persistent Histories**: The Volunteer dashboard reliably stores and displays both active and completed task histories, showing cumulative impact.
+- [✨ Core Features](#-core-features)
+- [🧠 Hybrid NLP Pipeline](#-hybrid-nlp-pipeline)
+- [🔄 Task Lifecycle](#-task-lifecycle)
+- [🛠 Tech Stack](#-tech-stack)
+- [🏗 System Architecture](#-system-architecture)
+- [📊 Role-Specific Features](#-role-specific-features)
+- [📡 API Endpoints](#-api-endpoints)
+- [🚀 Setup & Installation](#-setup--installation)
+- [🔐 Environment Variables](#-environment-variables)
+- [🗺 Usage Flow](#-usage-flow)
+- [📁 Project Architecture](#-project-architecture)
+- [🐛 Troubleshooting](#-troubleshooting)
+- [🔭 Future Scope](#-future-scope)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
 ---
 
-## 👥 System Views & Functionalities
+## ✨ Core Features at a Glance
 
-### 👑 Admin Domain (Command & Control)
-*   **NGO Management**: Full lifecycle management of partner organizations (Approve/Reject/Suspend).
-*   **Task Orchestration**: Breakdown crisis needs and assign them to the most capable NGOs.
-*   **Resource Control**: Allocate trucks, medicine, and food from the global inventory to active crisis zones.
-*   **Global Trail**: View the audit history of every task in the system to ensure transparency.
-
-### 🏢 NGO Coordinator Domain (Resource Management)
-*   **Active Needs**: View assignments from the Admin and accept or reject based on capacity.
-*   **Volunteer Dispatch**: Build teams for specific tasks and manage their individual assignments.
-*   **Pool Request Hub**: Submit requests for extra volunteers or approve lending your volunteers to other organizations.
-*   **Resource Contribution**: Push local resources to the global Admin pool to support wider relief efforts.
-
-### 👤 Volunteer Domain (Field Operations)
-*   **My Tasks**: A simplified, mobile-friendly view of current assignments, featuring both active and previously completed tasks.
-*   **Progress Tracker**: Move tasks through "Accept" → "Start" → "Complete" with real-time feedback.
-*   **Achievement Board**: View personal stats, points, and leaderboard position to track impact.
+| Feature | Description |
+|---------|-------------|
+| 🧠 **Hybrid NLP Pipeline** | 10-stage AI extraction: Preprocess → Summarize → Rule-based → Groq LLM → Geocoding → Scoring |
+| 🛡️ **Gemini Pre-Validation** | Google Gemini 2.5 Flash validates reports before processing, reducing spam & false entries |
+| 📄 **Multi-Format Upload** | PDF, DOCX, TXT with automatic text extraction & OCR preprocessing |
+| 📍 **Smart Geocoding** | 3-tier location extraction with OpenCage API + LRU cache (256 entries) |
+| 🤖 **Workload-Aware Matching** | Skill similarity (50%) + GPS proximity (35%) + ratings (15%) + workload penalty |
+| 🔄 **5-Stage Task Lifecycle** | Pending → Assigned → Accepted → In Progress → Completed |
+| ✅ **Volunteer Approval** | Admin review gate with auto email/WhatsApp onboarding |
+| 🕒 **Audit Trails** | Complete task history with who, what, when, and resource tracking |
+| 🗺️ **Geospatial Intelligence** | Interactive map with auto-clustering & heatmap visualization |
+| 🏆 **Gamification** | Performance points, leaderboards, and achievement tracking |
+| 📬 **Auto Notifications** | Email & WhatsApp alerts for assignments and updates |
+| 🔐 **JWT + RBAC** | Role-based access control with account status gating |
 
 ---
 
-## 🚀 Comprehensive Setup Guide
+### 🧠 **Hybrid NLP Pipeline Details**
 
-This guide covers everything you need to get the application running locally from scratch, including database initialization and environment configuration.
+**10-Stage Processing:**
+1. **Preprocess** — 40+ slang normalization (khana→food, paani→water, etc.)
+2. **Summarize** — Extract top 2-4 sentences by disaster-keyword density
+3. **Rule-Based** — Multi-category detection (8 categories) + urgency + people count
+4. **Groq LLM** — Async extraction via `llama-3.1-8b-instant` (15s timeout fallback)
+5. **Merge** — Combine LLM + rules with confidence scoring (90/65/40)
+6. **Geocode** — Convert locations to lat/lon with caching
+7. **Score** — Priority calculation (0–100 scale)
+8. **Match** — Workload-aware volunteer assignment
+9. **Notify** — Email + WhatsApp dispatch
+10. **Track** — Audit trail logging
 
-### Step 1: System Prerequisites
-Ensure your development environment has the following installed:
-- **PostgreSQL (14+)**: Required for relational data and robust querying.
-- **Python (3.10+)**: Required for the FastAPI backend and AI pipelines.
-- **Node.js (18+)**: Required for the React frontend.
-- **C++ Build Tools / Visual Studio**: (Windows only) required for compiling `EasyOCR` dependencies.
-
----
-
-### Step 2: Database Initialization (CRITICAL)
-
-The application uses PostgreSQL. You must create the database before running any backend scripts.
-
-1. **Open your PostgreSQL terminal (`psql`) or pgAdmin**.
-2. **Create the database and user** by running the following SQL commands:
-   ```sql
-   -- Create a dedicated database for the application
-   CREATE DATABASE community_sync3;
-   
-   -- (Optional but recommended) Create a dedicated user
-   CREATE USER sync_admin WITH PASSWORD 'your_secure_password';
-   
-   -- Grant privileges to the user
-   GRANT ALL PRIVILEGES ON DATABASE community_sync3 TO sync_admin;
-   ```
+**Graceful Degradation:** If Groq unavailable → falls back to rule-based extraction
 
 ---
 
-### Step 3: Backend Configuration
+### 🛡️ **Gemini Pre-Validation Layer (NEW)**
 
-The backend handles AI processing, API routing, and database interactions.
-
-1. **Navigate to the backend directory and create a Virtual Environment**:
-   ```bash
-   cd backend
-   python -m venv venv
-   
-   # Activate it (Windows):
-   venv\Scripts\activate
-   
-   # Activate it (Mac/Linux):
-   source venv/bin/activate
-   ```
-
-2. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   
-   # Download the required NLP model for SpaCy
-   python -m spacy download en_core_web_sm
-   ```
-   *(Note: OpenCV, EasyOCR, and google-generativeai will automatically install from requirements.txt for the pipeline.)*
-
-3. **Configure Environment Variables (`.env`)**:
-   In the `backend` directory, create a file named `.env` and add the following:
-   ```env
-   # Database Connection String
-   # Format: postgresql+pg8000://<user>:<password>@localhost:5432/<dbname>
-   DATABASE_URL=postgresql+pg8000://postgres:YOUR_PASSWORD@localhost:5432/community_sync3
-   
-   # Security
-   JWT_SECRET=any_random_secure_string_here
-   
-   # Third-Party APIs
-   GROQ_API_KEY=your_groq_api_key_here          # Required for LLM text extraction logic
-   GEMINI_API_KEY=your_gemini_api_key_here      # Required for Gemini 2.5 Flash validation layer
-   OPENCAGE_API_KEY=your_opencage_api_key_here  # Required for Map/Location Geocoding
-   ```
-
-4. **Run the Automated Setup Script**:
-   This script builds all tables, enumerations, and relationships automatically.
-   ```bash
-   python scripts/setup_db.py
-   ```
-
-5. **Create an Admin Account**:
-   You need an Admin account to access the main dashboard.
-   ```bash
-   python add_admin.py
-   ```
-   *(Follow the terminal prompts to set an email and password).*
+Ensures **only authentic, actionable disaster reports** are processed:
+- **Asynchronous validation** via Google Gemini 2.5 Flash in JSON mode
+- **Pre-pipeline gate** — validates before entering main NLP pipeline
+- **Reduces spam** — Drastically cuts database pollution from false/duplicate entries
+- **Fail-open fallback** — If Gemini unavailable, system allows reports to proceed
 
 ---
 
-### Step 4: Frontend Configuration
+### 📍 **Location & Geocoding**
 
-1. **Navigate to the frontend directory**:
-   ```bash
-   # From the root project folder
-   cd frontend
-   ```
+| Tier | Method |
+|------|--------|
+| 1️⃣ Primary | Groq LLM extraction |
+| 2️⃣ Secondary | spaCy NER (GPE/LOC entities) |
+| 3️⃣ Fallback | 20+ static city coordinates |
 
-2. **Install Node Modules**:
-   ```bash
-   npm install --legacy-peer-deps
-   ```
-   *(Note: `--legacy-peer-deps` is used to ensure React-Leaflet installs smoothly with React 18).*
-
-3. **Set API URL**: 
-   Create a `.env` file in the `/frontend` directory:
-   ```env
-   REACT_APP_API_URL=http://127.0.0.1:8000
-   ```
+- **OpenCage API** with LRU cache prevents repeated API calls
+- **Haversine distance** for GPS-based volunteer matching
 
 ---
 
-## 🛠 Running the Codebase
+### 🤖 **Smart Volunteer Matching**
 
-Follow these steps in **two separate terminal windows**:
+**Composite Score:** 
+- Jaccard Skill Similarity: **50%**
+- Haversine Proximity: **35%**
+- Performance Rating: **15%**
+- Workload Penalty: Applied per active task
 
-### Terminal 1: Backend Server
+**Gate:** Only **approved** volunteers eligible
+
+---
+
+### 🔄 **Task Lifecycle & Volunteer Actions**
+
+```
+Pending ──[Admin Match]──> Assigned ──[Volunteer Accept]──> Accepted
+                                                                ↓
+                                                        In Progress ──> Completed
+                                                        (with feedback)
+```
+
+- Volunteers must **explicitly accept** before work begins
+- Real-time status tracking with animated badges
+- 1-5 star ratings + comments on completion
+
+---
+
+### ✅ **Volunteer Approval Workflow**
+
+| Step | Action | Notification |
+|------|--------|--------------|
+| 1. Signup | Volunteer registers | Status: `pending` |
+| 2. Review | Admin approves/rejects | N/A |
+| 3. Onboard | System sends credentials | Welcome Email + WhatsApp |
+| 4. Access | Volunteer can now login | Auto-approved |
+
+---
+
+### 🕒 **Interactive Audit Trails**
+
+Track every change:
+- Who/when/what actions occurred
+- Resource allocations & status transitions
+- Volunteer feedback & ratings
+- Complete task history
+
+---
+
+### 🗺️ **Geospatial Intelligence**
+
+- **OpenStreetMap + React-Leaflet** integration
+- **Auto-clustering** of crisis markers
+- **Dynamic heatmap** showing high-priority zones
+- **Real-time tracking** (future scope)
+
+---
+
+### 📬 **Notification System**
+
+| Channel | Use Case |
+|---------|----------|
+| 📧 **Email** | Assignment alerts, welcome, password resets |
+| 💬 **WhatsApp** | Real-time assignment notifications with details |
+
+---
+
+### 🏆 **Gamification**
+
+- Performance points per completed task
+- Leaderboard rankings
+- Achievement history tracking
+- Cross-org collaboration bonuses
+
+---
+
+### 🔐 **Security & Access Control**
+
+- **JWT authentication** with configurable expiry
+- **Account status gating** (pending/approved/rejected)
+- **Frontend RBAC** via `<ProtectedRoute>` wrapper
+- **URL hacking protection** → redirects to `/unauthorized`
+
+---
+
+## 🔄 Task Lifecycle
+
+```
+  ┌──────────┐    Admin assigns    ┌──────────┐   Volunteer accepts  ┌──────────┐
+  │ PENDING  │ ─────────────────▶ │ ASSIGNED │ ─────────────────▶  │ ACCEPTED │
+  └──────────┘                    └──────────┘                      └────┬─────┘
+                                                                         │ Volunteer starts
+                                                                         ▼
+                                                                   ┌───────────┐
+                                                                   │ IN PROGRESS│
+                                                                   └─────┬──────┘
+                                                                         │ Volunteer completes
+                                                                         ▼
+                                                                   ┌───────────┐
+                                                                   │ COMPLETED  │
+                                                                   └───────────┘
+```
+
+Each transition is validated server-side. Invalid transitions (e.g., jumping from `pending` to `in_progress`) return a `400 Bad Request`.
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Tech |
+|-------|------|
+| **Frontend** | React 18, Tailwind CSS, Axios, React Router, Lucide Icons |
+| **Backend** | FastAPI, Python 3.10, SQLAlchemy 2.0, Pydantic v2 |
+| **Database** | PostgreSQL, pg8000 (pure Python driver) |
+| **AI/NLP** | Groq LLM (llama-3.1-8b-instant), spaCy, Rule-based extraction |
+| **Validation** | Google Gemini 2.5 Flash (pre-validation gate) |
+| **Geocoding** | OpenCage API + LRU cache (256 entries) |
+| **Auth** | JWT (python-jose), bcrypt (passlib) |
+| **Email** | FastAPI-Mail (SMTP) |
+| **SMS/WhatsApp** | Twilio API |
+| **Testing** | Pytest, httpx, Faker |
+
+---
+
+## 🏗 System Architecture
+
+**10-Stage AI Pipeline:**
+
+```
+Report Input
+     ↓
+[Gemini Pre-Validation] ← NEW: Reduces spam & false entries
+     ↓
+Preprocess (40+ slang mappings)
+     ↓
+Summarize (disaster keyword scoring)
+     ↓
+Rule-Based Extract (8 categories, urgency, people count)
+     ↓
+Groq LLM Extract (llama-3.1-8b-instant, 15s async timeout)
+     ↓
+Merge Results (LLM preferred, rule fallback)
+     ↓
+Geocode Location (OpenCage + 256-entry LRU cache)
+     ↓
+Score Priority (0-100 scale)
+     ↓
+Workload-Aware Match (Skill 50% + Distance 35% + Rating 15%)
+     ↓
+Notify Volunteer (Email + WhatsApp)
+     ↓
+Task Lifecycle Tracking (Pending → Assigned → Accepted → In Progress → Completed)
+```
+
+**Confidence Scores:**
+- **90** = LLM successful extraction
+- **65** = Rule-based with category matches
+- **40** = Fallback only
+
+---
+
+## 📊 Role-Specific Dashboards
+
+| Role | Key Features |
+|------|-------------|
+| **👑 Admin** | Full analytics (5-state lifecycle), category/urgency charts, volunteer metrics, NGO management, global audit trail, match/unassign controls |
+| **🏢 NGO** | Needs overview, progress tracking, resource contribution, pool requests, volunteer dispatch, performance charts |
+| **👤 Volunteer** | My Tasks, action buttons (Accept/Start/Complete), feedback submission, skills management, leaderboard, achievement history |
+
+---
+
+## 📡 API Endpoints
+
+### 🔑 Auth & Profile
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/auth/register` | `POST` | Register (volunteers start `pending`) |
+| `/auth/login` | `POST` | Authenticate → JWT (blocks unapproved) |
+| `/auth/me` | `GET` | Get profile |
+| `/auth/me` | `PUT` | Update profile |
+| `/auth/forgot-password` | `POST` | Request reset email |
+| `/auth/reset-password` | `POST` | Reset with token |
+
+### 📋 Needs & Reporting
+| Endpoint | Method | Access | Description |
+|----------|--------|--------|-------------|
+| `/api/upload-report` | `POST` | Auth | Text → Gemini validation → NLP pipeline |
+| `/api/upload-file` | `POST` | Auth | PDF/DOCX/TXT → pipeline |
+| `/api/needs` | `GET` | Auth | List all needs (filter by status/category) |
+| `/api/needs/{id}` | `GET` | Auth | Get single need |
+
+### 🤝 Matching & Tasks
+| Endpoint | Method | Access | Description |
+|----------|--------|--------|-------------|
+| `/api/match/{need_id}` | `POST` | Admin/NGO | Auto-match approved volunteer |
+| `/api/match/{need_id}/manual` | `POST` | Admin | Manual assign |
+| `/api/match/{need_id}/unassign` | `POST` | Admin | Remove assignment |
+| `/api/task/my-tasks` | `GET` | Volunteer | Get assigned tasks |
+| `/api/task/{need_id}/accept` | `POST` | Volunteer | Accept → `accepted` |
+| `/api/task/{need_id}/start` | `POST` | Volunteer | Start → `in_progress` |
+| `/api/task/{need_id}/complete` | `POST` | Volunteer | Complete + rating → `completed` |
+
+### 👥 Volunteer Management
+| Endpoint | Method | Access | Description |
+|----------|--------|--------|-------------|
+| `/api/volunteers` | `GET` | Admin/NGO | List approved volunteers |
+| `/api/volunteers/pending` | `GET` | Admin | List pending approvals |
+| `/api/volunteer/{id}/approve` | `POST` | Admin | Approve (triggers welcome email + WhatsApp) |
+| `/api/volunteer/{id}/reject` | `POST` | Admin | Reject |
+| `/api/volunteer` | `POST` | Admin | Create (auto-approved) |
+| `/api/volunteer/{id}` | `PUT` | Admin | Update |
+| `/api/volunteer/{id}` | `DELETE` | Admin | Delete |
+
+### 📊 Analytics
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/dashboard` | `GET` | Aggregated stats (5 lifecycle states) |
+
+---
+
+## 🚀 Setup & Installation
+
+### Prerequisites
+- **Python 3.10+** | **Node.js 18+** | **PostgreSQL 14+** | **C++ Build Tools** (Windows)
+
+### Quick Start
+
+**1. Clone & Setup Database**
+```bash
+git clone https://github.com/your-username/CommunitySync.git
+cd CommunitySync
+
+# Create database
+psql -U postgres -c "CREATE DATABASE community_sync3;"
+```
+
+**2. Backend Setup**
 ```bash
 cd backend
-# Ensure virtual environment is active (venv)
-# Start the FastAPI server with auto-reload for development
+python -m venv venv
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Mac/Linux
+
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+
+# Create .env file (see Environment Variables section)
+python scripts/setup_db.py
+python add_admin.py
 uvicorn main:app --reload
 ```
-*Comment: The backend handles all data logic, authentication, and the audit trail engine.*
 
-### Terminal 2: Frontend UI
+**3. Frontend Setup**
 ```bash
 cd frontend
-# Start the React development server
+npm install --legacy-peer-deps
+# Create .env file (see Environment Variables section)
 npm start
 ```
-*Comment: The frontend provides the interactive dashboards and the live Audit Trail timeline.*
+
+**Backend:** http://127.0.0.1:8000 | **Docs:** http://127.0.0.1:8000/docs  
+**Frontend:** http://localhost:3000
+
+---
+
+## 🔐 Environment Variables
+
+### Backend `.env`
+```env
+# Database
+DATABASE_URL=postgresql+pg8000://sync_admin:password@localhost:5432/community_sync3
+
+# App Config
+APP_TITLE=Smart Resource Allocation API
+DEBUG=True
+CORS_ORIGINS=["http://localhost:3000"]
+
+# JWT
+JWT_SECRET=your-secret-key-change-in-production
+JWT_ALGORITHM=HS256
+JWT_EXPIRY_MINUTES=1440
+
+# Email (Gmail + App Password)
+EMAIL_USERNAME=your.email@gmail.com
+EMAIL_PASSWORD=your-gmail-app-password
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+
+# Twilio WhatsApp
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE=+14155238886
+
+# LLMs & APIs
+GROQ_API_KEY=gsk_your_groq_key
+OPENCAGE_API_KEY=your_opencage_key
+```
+
+### Frontend `.env`
+```env
+REACT_APP_API_URL=http://127.0.0.1:8000
+```
+
+**Get Free Keys:**
+- 🤖 Groq: [console.groq.com](https://console.groq.com)
+- 🗺️ OpenCage: [opencagedata.com](https://opencagedata.com/users/sign_up)
+- 📧 Gmail: Use [App Password](https://support.google.com/accounts/answer/185833)
+- 💬 Twilio: [Sandbox setup](https://console.twilio.com/us1/develop/sms/try-it-out/whatsapp-learn)
+
+---
+
+## 🗺 Usage Flow
+
+### Upload & Process Crisis Report
+```
+Upload (Text/PDF) ─→ Gemini Validation ─→ Preprocess + Summarize
+     ↓
+Rule-Based Extract ─→ Groq LLM Extract ─→ Merge (LLM preferred)
+     ↓
+Geocode Location ─→ Priority Score (0-100) ─→ Dashboard (Pending)
+     ↓
+Admin Auto-Match ─→ Workload-Aware Algorithm ─→ Volunteer Assignment
+     ↓
+Email + WhatsApp Notification ─→ Status: Assigned
+```
+
+### Volunteer Task Management
+```
+Accept Assignment ─→ Accept (Status: Accepted) ─→ Start Work (In Progress)
+     ↓
+Complete Task ─→ Submit Rating + Feedback (1-5 stars) ─→ Status: Completed
+     ↓
+Performance Points Earned ─→ Leaderboard Updated
+```
+
+### Role-Based Actions
+| Admin | NGO | Volunteer |
+|:-----:|:---:|:---------:|
+| ✅ Upload | ✅ Upload | ✅ Upload |
+| ✅ View All Needs | ✅ View Needs | ❌ View Only My Tasks |
+| ✅ Auto/Manual Match | ✅ Auto Match | ❌ Can't Match |
+| ✅ Approve Volunteers | ❌ No Access | ❌ No Access |
+| ❌ Accept Tasks | ❌ Accept Tasks | ✅ Accept/Complete |
 
 ---
 
 ## 📁 Project Architecture
 
-- **`backend/models/`**: Defines the data structure (Users, Tasks, Resources, Trails).
-- **`backend/routes/`**: Handles API requests (e.g., `task_routes.py` manages the consensus completion).
-- **`backend/services/`**: Houses the NLP, location extraction, and validation logic.
-- **`backend/scripts/`**: Maintenance and setup utilities.
-- **`frontend/src/pages/`**: The distinct views for Admin, NGO, and Volunteers.
-- **`frontend/src/components/`**: Reusable UI elements like the **TaskTrailPanel**.
+```
+CommunitySync/
+├── backend/
+│   ├── models/          # ORM models (User, Need, Volunteer, Task, Resource)
+│   ├── routes/          # API endpoints (auth, needs, matching, tasks)
+│   ├── services/        # Business logic (NLP, geocoding, matching, notifications)
+│   ├── schemas/         # Pydantic validation schemas
+│   ├── scripts/         # DB setup & migrations
+│   ├── tests/           # Pytest test suites
+│   ├── main.py          # FastAPI entry point
+│   └── requirements.txt # Dependencies
+│
+├── frontend/
+│   ├── src/
+│   │   ├── pages/       # Dashboard, Needs, Volunteers, Login, etc.
+│   │   ├── components/  # TopBar, Sidebar, TaskPanel, ProtectedRoute
+│   │   ├── services/    # API wrappers (axios)
+│   │   └── utils/       # Auth helpers, formatters
+│   ├── package.json
+│   └── tailwind.config.js
+│
+└── README.md
+```
+
+**Key Services:**
+- `nlp_service.py` — Groq + rule-based extraction, confidence scoring
+- `matching_service.py` — Workload-aware volunteer assignment
+- `geocoding_service.py` — OpenCage + caching + fallback cities
+- `email_service.py` — Assignment & welcome notifications
+- `whatsapp_service.py` — Twilio WhatsApp alerts
+- `validation_service.py` — Gemini pre-validation gate
+
+## 🛠 Running the System
+
+### Terminal 1: Backend
+```bash
+cd backend
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Mac/Linux
+uvicorn main:app --reload
+```
+→ **http://127.0.0.1:8000** | Docs: **http://127.0.0.1:8000/docs**
+
+### Terminal 2: Frontend
+```bash
+cd frontend
+npm start
+```
+→ **http://localhost:3000**
 
 ---
 
-## 🐛 Troubleshooting & Support
+## 🐛 Troubleshooting
 
-- **"Relation X does not exist"**: You missed Step 2. Run `python scripts/setup_db.py`.
-- **"Connection Refused"**: Ensure your Backend is running on port 8000.
-- **"Invalid Token"**: Clear your browser cookies or log in again; your JWT session might have expired.
-- **"Validation Layer Skipping"**: Ensure `GEMINI_API_KEY` is set correctly in the `.env` file. Without it, the system falls back to allowing all reports (fail-open).
+| Error | Solution |
+|-------|----------|
+| `Relation X does not exist` | Run `python scripts/setup_db.py` |
+| `Connection Refused` (backend) | Check PostgreSQL running & `DATABASE_URL` correct |
+| `Connection Refused` (frontend) | Ensure backend on port 8000 & `.env` configured |
+| `Invalid Token` / `403` | Clear cookies or login again |
+| `Account pending approval` | Admin must approve volunteer |
+| Groq LLM timeout | Fallback to rule-based auto-kicks in |
+| Email not sending | Verify Gmail app password in `.env` |
+| WhatsApp not delivering | Recipient must opt-in via Twilio Sandbox |
+| Geocoding failing | OpenCage key invalid; fallback cities used |
+| `Module not found` | Run `pip install -r requirements.txt` or `npm install` |
 
 ---
-**Built with ❤️ for Crisis Nexus — Empowering communities through federated coordination.**
+
+## 🔭 Future Roadmap
+
+| Feature | Description | Impact |
+|---------|-------------|--------|
+| 🤖 **Predictive Crisis AI** | Ingest weather + geopolitical feeds | Proactive need generation |
+| 📍 **Real-Time Tracking** | WebSocket GPS on Leaflet/Mapbox | Live volunteer location |
+| 🏢 **Multi-Tenant NGO** | Isolated workspaces + shared pools | Cross-org coordination |
+| 📱 **Mobile App** | React Native offline-first | Field operations in low connectivity |
+| 📈 **Analytics Dashboards** | Volunteer performance trends | Data-driven insights |
+| 🌐 **Multilingual NLP** | Bengali, Tamil, Spanish, Swahili | Regional language support |
+| 🔄 **Batch Upload** | Multiple reports with progress | Bulk reporting |
+| 🔗 **WhatsApp Commands** | "accept 101" via WhatsApp | Alternative UI |
+| 🤝 **Consensus Completion** | Multiple NGO sign-offs | Federated operations |
+| 📦 **Smart Inventory** | Auto-dedup & quantity merge | Efficient resource management |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to get started:
+
+1. **Fork** the repository
+2. **Create** your feature branch
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Commit** your changes
+   ```bash
+   git commit -m "Add amazing feature"
+   ```
+4. **Push** to the branch
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+5. **Open** a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Built with ❤️ for communities that need it most.**
+
+⭐ *Star this repo if you found it useful!* ⭐
+
+**[Report Bug](https://github.com/your-username/CommunitySync/issues)** · **[Request Feature](https://github.com/your-username/CommunitySync/issues)**
+
+</div>
