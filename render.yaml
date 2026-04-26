@@ -2,7 +2,7 @@ services:
   - type: web
     name: communitysync-backend
     env: python
-    pythonVersion: 3.11
+    pythonVersion: 3.10
     region: us-east-1
     buildCommand: "pip install --prefer-binary -r backend/requirements.txt"
     startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
