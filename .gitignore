@@ -1,48 +1,149 @@
+# ═══════════════════════════════════════════════════════════════
+# SENSITIVE FILES - NEVER COMMIT THESE
+# ═══════════════════════════════════════════════════════════════
+
+# Environment variables with secrets
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+
+# ═══════════════════════════════════════════════════════════════
+# Python
+# ═══════════════════════════════════════════════════════════════
 # Virtual environment
 venv/
 .venv/
+ENV/
+env/
 
-# Python
+# Python cache
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
 dist/
 build/
+eggs/
+.eggs/
+*.egg
 
-# Environment variables
-.env
+# Testing & Coverage
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+*.cover
+coverage.xml
 
-# IDE
+# ═══════════════════════════════════════════════════════════════
+# Node / Frontend
+# ═══════════════════════════════════════════════════════════════
+node_modules/
+npm-debug.log
+npm-debug.log.*
+yarn-debug.log
+yarn-error.log
+build/
+dist/
+.cache/
+
+# ═══════════════════════════════════════════════════════════════
+# IDE & Editors
+# ═══════════════════════════════════════════════════════════════
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# Testing
-.pytest_cache/
-htmlcov/
-.coverage
-
-# OS
-Thumbs.db
+*~
 .DS_Store
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+.vim/
 
-# Utility / one-off scripts (not part of core app)
-test_scripts/
-
+# ═══════════════════════════════════════════════════════════════
 # Logs
+# ═══════════════════════════════════════════════════════════════
 *.log
+logs/
+*.log.*
 
-# Node (for future frontend)
-node_modules/
-
-# Gemini
-.gemini/
-
+# ═══════════════════════════════════════════════════════════════
 # Temporary / Scratch
+# ═══════════════════════════════════════════════════════════════
+test_scripts/
+scratch/
+temp/
+tmp/
 backend/scratch/
-backend/venv/
 backend/output.log
 backend/init_output.txt
 backend/test_output.txt
 backend/test_scripts/
+
+# ═══════════════════════════════════════════════════════════════
+# OS Files
+# ═══════════════════════════════════════════════════════════════
+Thumbs.db
+.DS_Store
+*.iso
+*.dmg
+
+# ═══════════════════════════════════════════════════════════════
+# Database
+# ═══════════════════════════════════════════════════════════════
+*.db
+*.sqlite
+*.sqlite3
+.pgpass
+
+# ═══════════════════════════════════════════════════════════════
+# API Keys & Secrets
+# ═══════════════════════════════════════════════════════════════
+# ONLY commit .env.production.example (no actual values)
+.env.*.actual
+*.key
+*.pem
+*.pfx
+secret.txt
+credentials.json
+
+# ═══════════════════════════════════════════════════════════════
+# Backup & Archive
+# ═══════════════════════════════════════════════════════════════
+*.backup
+*.bak
+*.old
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# ═══════════════════════════════════════════════════════════════
+# Package Manager
+# ═══════════════════════════════════════════════════════════════
+package-lock.json
+poetry.lock
+Pipfile.lock
+
+# ═══════════════════════════════════════════════════════════════
+# OCR & AI Models (if cached locally)
+# ═══════════════════════════════════════════════════════════════
+models/
+*.pb
+*.model
+
+# ═══════════════════════════════════════════════════════════════
+# Safe to commit (opposite of above)
+# ═══════════════════════════════════════════════════════════════
+# These are templates and examples - ALWAYS SAFE:
+!.env.production.example
+!.env.development.example
+!.env.example
+!DEPLOYMENT_*.md
+!render.yaml
+!.github/
+

@@ -1,0 +1,68 @@
+name: Keep Backend Alive (Render Free Tier)
+
+# Runs every 10 minutes to prevent Render free tier auto-sleep
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # Every 10 minutes
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping backend health endpoint
+        run: |
+          echo "🔄 Pinging health endpoint to keep backend alive..."
+          
+          # Make request to health check endpoint
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://communitysync-backend.onrender.com/api/health)
+          
+          if [ $RESPONSE -eq 200 ]; then
+            echo "✅ Backend is healthy (HTTP 200)"
+          elif [ $RESPONSE -eq 0 ]; then
+            echo "⚠️ Could not reach backend (service may be spinning up)"
+            echo "This is normal - Render is starting the service"
+            exit 0  # Don't fail - this is expected behavior
+          else
+            echo "⚠️ Backend returned HTTP $RESPONSE"
+            echo "This may indicate a problem, but keep-alive ping still counts as a request"
+          fi
+      
+      - name: Ping ready endpoint (with retry)
+        run: |
+          echo "🔍 Checking if database is connected..."
+          
+          for i in {1..3}; do
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://communitysync-backend.onrender.com/api/health/ready)
+            
+            if [ $RESPONSE -eq 200 ]; then
+              echo "✅ Backend + Database ready (HTTP 200)"
+              exit 0
+            fi
+            
+            if [ $i -lt 3 ]; then
+              echo "⏳ Attempt $i/3 - retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+          
+          echo "⚠️ Database may not be responding, but keep-alive ping sent"
+          exit 0  # Don't fail the workflow
+      
+      - name: Log timestamp
+        run: |
+          echo "⏰ Keep-alive ping completed at $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "📌 Backend will stay awake until next ping in 10 minutes"
+
+  # Optional: Notification if health check fails
+  notify-if-down:
+    runs-on: ubuntu-latest
+    if: failure()  # Only runs if job above failed
+    
+    steps:
+      - name: Backend is down
+        run: |
+          echo "🚨 Backend health check failed"
+          echo "Visit Render dashboard to investigate: https://dashboard.render.com"
+          echo "Note: This may be a temporary issue - check Render logs"

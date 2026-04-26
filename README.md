@@ -37,12 +37,19 @@
 - [📡 API Endpoints](#-api-endpoints)
 - [🚀 Setup & Installation](#-setup--installation)
 - [🔐 Environment Variables](#-environment-variables)
+- [🌐 Production Deployment](#-production-deployment-guide) (Render + Neon PostgreSQL)
 - [🗺 Usage Flow](#-usage-flow)
 - [📁 Project Architecture](#-project-architecture)
 - [🐛 Troubleshooting](#-troubleshooting)
 - [🔭 Future Scope](#-future-scope)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
+
+---
+
+> **📖 Full Deployment Guide:** See [DEPLOYMENT.md](DEPLOYMENT.md) for complete step-by-step instructions on hosting with Render + Neon PostgreSQL
+
+---
 
 ---
 
@@ -505,7 +512,298 @@ npm start
 
 ---
 
-## 🐛 Troubleshooting
+## � Production Deployment Guide
+
+Deploy on **Render** (Frontend + Backend) + **Neon PostgreSQL** (Database)
+
+### 1️⃣ Neon PostgreSQL Setup
+
+**Create Free Database:**
+1. Go to [neon.tech](https://neon.tech) → Sign up
+2. Create new project → Copy `DATABASE_URL`:
+   ```
+   postgresql://user:password@ep-xxx.us-east-1.neon.tech/community_sync?sslmode=require
+   ```
+3. Store this — you'll need it for Render backend
+
+**Important:** Neon uses SSL by default. Your `DATABASE_URL` must include `?sslmode=require`
+
+---
+
+### 2️⃣ Backend on Render (FastAPI + EasyOCR)
+
+**Create Web Service:**
+1. Go to [render.com](https://render.com) → New → Web Service
+2. Connect your GitHub repo
+3. Configure:
+
+| Setting | Value |
+|---------|-------|
+| **Name** | `communitysync-backend` |
+| **Environment** | `Python` |
+| **Region** | US (or closest to you) |
+| **Branch** | `main` |
+| **Build Command** | `pip install -r backend/requirements.txt && python -m spacy download en_core_web_sm` |
+| **Start Command** | `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT` |
+| **Instance Type** | Free (for testing) or Starter+ (production) |
+
+**Set Environment Variables in Render Dashboard:**
+```env
+DATABASE_URL=postgresql://user:password@ep-xxx.us-east-1.neon.tech/community_sync?sslmode=require
+
+APP_TITLE=CommunitySync
+DEBUG=False
+CORS_ORIGINS=["https://communitysync-frontend.onrender.com"]
+
+JWT_SECRET=your-production-secret-key-change-this
+JWT_ALGORITHM=HS256
+JWT_EXPIRY_MINUTES=1440
+
+EMAIL_USERNAME=your.email@gmail.com
+EMAIL_PASSWORD=your-gmail-app-password
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE=+14155238886
+
+GROQ_API_KEY=gsk_your_groq_key
+OPENCAGE_API_KEY=your_opencage_key
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+**After Deployment:**
+- ✅ Backend runs at: `https://communitysync-backend.onrender.com`
+- ✅ API docs: `https://communitysync-backend.onrender.com/docs`
+
+---
+
+### 3️⃣ Frontend on Render (React Static Site)
+
+**Build Production Bundle:**
+```bash
+cd frontend
+npm run build
+```
+This creates `/frontend/build` folder
+
+**Create Static Site:**
+1. Go to [render.com](https://render.com) → New → Static Site
+2. Connect your GitHub repo
+3. Configure:
+
+| Setting | Value |
+|---------|-------|
+| **Name** | `communitysync-frontend` |
+| **Branch** | `main` |
+| **Build Command** | `cd frontend && npm install --legacy-peer-deps && npm run build` |
+| **Publish Directory** | `frontend/build` |
+
+**Add Environment Variable:**
+```env
+REACT_APP_API_URL=https://communitysync-backend.onrender.com
+```
+
+**After Deployment:**
+- ✅ Frontend runs at: `https://communitysync-frontend.onrender.com`
+- ✅ Routes automatically fallback to `index.html` for React Router
+
+---
+
+### 4️⃣ Database Migrations on Neon
+
+After backend deploys, initialize database:
+
+**Option A: Use Render Console**
+```bash
+cd backend && python scripts/setup_db.py
+```
+
+**Option B: Manual via psql**
+```bash
+psql postgresql://user:password@ep-xxx.us-east-1.neon.tech/community_sync
+
+# Then run:
+\i scripts/setup_db.sql
+```
+
+**Option C: Python Script (Recommended)**
+```python
+# scripts/init_production_db.py
+from database import engine
+from models import *
+
+# Create all tables
+metadata.create_all(bind=engine)
+print("✅ Database initialized")
+```
+
+Run via Render webhook or manual trigger
+
+---
+
+### 5️⃣ Code Changes for Production
+
+**Backend:**
+
+**`backend/main.py`** — Update CORS:
+```python
+from fastapi.middleware.cors import CORSMiddleware
+
+# Production CORS config
+CORS_ORIGINS = os.getenv(
+    "CORS_ORIGINS",
+    '["https://communitysync-frontend.onrender.com"]'
+)
+
+origins = json.loads(CORS_ORIGINS) if isinstance(CORS_ORIGINS, str) else CORS_ORIGINS
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+**`backend/config.py`** — Production settings:
+```python
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Settings:
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL",
+        "postgresql://localhost/community_sync"
+    )
+    # Ensure SSL for Neon
+    if "neon.tech" in DATABASE_URL:
+        if "?" not in DATABASE_URL:
+            DATABASE_URL += "?sslmode=require"
+    
+    JWT_SECRET = os.getenv("JWT_SECRET", "change-me-in-production")
+    DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+    
+    # ... other settings
+
+settings = Settings()
+```
+
+**Frontend:**
+
+**`frontend/.env.production`** — Create this file:
+```env
+REACT_APP_API_URL=https://communitysync-backend.onrender.com
+```
+
+**`frontend/src/services/api.js`** — Update base URL:
+```javascript
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
+const api = axios.create({
+    baseURL: API_URL,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+export default api;
+```
+
+---
+
+### 6️⃣ Critical Checklist ✅
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Neon database created | ⬜ | Copy `DATABASE_URL` with `?sslmode=require` |
+| Render backend service created | ⬜ | Set all env vars, use `Start Command` from step 2 |
+| Render frontend site created | ⬜ | Publish directory must be `frontend/build` |
+| Database migrations run | ⬜ | Creates tables & enums |
+| Admin account created | ⬜ | Run `python add_admin.py` via backend service |
+| CORS configured correctly | ⬜ | Frontend URL matches `CORS_ORIGINS` |
+| All API keys set | ⬜ | Groq, Gemini, OpenCage, Twilio, Gmail |
+| `build` folder committed | ⬜ | Only needed if not using Render's build command |
+
+---
+
+### 7️⃣ Troubleshooting Deployment
+
+| Issue | Solution |
+|-------|----------|
+| `SSL connection error` | Add `?sslmode=require` to `DATABASE_URL` |
+| `CORS 403` | Check `CORS_ORIGINS` matches frontend URL |
+| `API endpoint not found` | Backend URL in frontend `.env` must be https |
+| `Build timeout` | Render free tier slow; use Starter+ ($12/mo) |
+| `EasyOCR memory` | Disable OCR for free tier or use Starter+ |
+| `Secrets not loading` | Restart service after adding env vars |
+| `Database connection failed` | Test connection string via psql locally first |
+| `WhatsApp not sending` | Ensure sandbox configured in Twilio Console |
+
+---
+
+### 8️⃣ Cost Breakdown (Monthly)
+
+| Service | Plan | Cost |
+|---------|------|------|
+| Render Backend | Free | $0 (spins down after 15min inactivity) |
+| Render Backend | Starter+ | $12 (always running, recommended) |
+| Render Frontend | Free | $0 (static site) |
+| Neon Database | Free | $0 (with limits) |
+| **Total** | Free Tier | ~$0 (works for MVP) |
+| **Total** | Production | ~$12/mo |
+
+---
+
+### 9️⃣ Optional: Custom Domain
+
+1. Buy domain (GoDaddy, Namecheap, etc.)
+2. In Render dashboard → Custom Domain
+3. Add CNAME records pointing to Render's nameservers
+4. SSL certificate auto-generates (free via Render)
+
+Example: `https://communitysync.com`
+
+---
+
+### 🔟 Post-Deployment Verification
+
+1. **Test Backend API:**
+   ```bash
+   curl https://communitysync-backend.onrender.com/docs
+   ```
+   Should show Swagger UI ✅
+
+2. **Test Frontend:**
+   ```bash
+   curl https://communitysync-frontend.onrender.com
+   ```
+   Should return HTML ✅
+
+3. **Test Database:**
+   ```bash
+   psql postgresql://user:password@ep-xxx.us-east-1.neon.tech/community_sync
+   \dt  # List tables
+   ```
+
+4. **Test Login:**
+   - Go to frontend URL
+   - Login with admin credentials created
+   - Should redirect to dashboard ✅
+
+5. **Test Upload:**
+   - Upload test crisis report
+   - Should process through Gemini + Groq pipeline ✅
+   - Check Render backend logs for errors
+
+---
+
+## �🐛 Troubleshooting
 
 | Error | Solution |
 |-------|----------|
