@@ -16,7 +16,7 @@ jobs:
           echo "🔄 Pinging health endpoint to keep backend alive..."
           
           # Make request to health check endpoint
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://communitysync-backend.onrender.com/api/health)
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://communitysync.onrender.com/api/health)
           
           if [ $RESPONSE -eq 200 ]; then
             echo "✅ Backend is healthy (HTTP 200)"
