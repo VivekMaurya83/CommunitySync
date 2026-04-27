@@ -129,7 +129,7 @@ async def send_welcome_email(email: str, role: str) -> bool:
 
 async def send_password_reset_email(email: str, token: str) -> bool:
     """Send link to reset password."""
-    reset_link = f"http://localhost:3000/reset-password?token={token}"
+    reset_link = f"https://communitysync-1.onrender.com/reset-password?token={token}"
     subject = "🔒 Reset Your Password"
     body = f"""
     <html>
@@ -146,7 +146,7 @@ async def send_password_reset_email(email: str, token: str) -> bool:
 
 async def send_admin_created_volunteer_email(email: str, temp_password: str) -> bool:
     """Send welcome email with generated password for admin-created volunteers."""
-    login_link = "http://localhost:3000/login"
+    login_link = "https://communitysync-1.onrender.com/login"
     subject = "👋 Welcome to CommunitySync (Action Required)"
     body = f"""
     <html>
@@ -218,7 +218,7 @@ async def send_volunteer_welcome_email(name: str, email: str) -> bool:
         </div>
 
         <p>
-            <a href="http://localhost:3000/login"
+            <a href="https://communitysync-1.onrender.com/login"
                style="display:inline-block; padding:10px 20px; background-color:#2563eb; color:white; text-decoration:none; border-radius:5px;">
                 Log In Now
             </a>

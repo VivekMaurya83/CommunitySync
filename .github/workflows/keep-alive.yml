@@ -34,7 +34,7 @@ jobs:
           echo "🔍 Checking if database is connected..."
           
           for i in {1..3}; do
-            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://communitysync-backend.onrender.com/api/health/ready)
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://communitysync.onrender.com/api/health/ready)
             
             if [ $RESPONSE -eq 200 ]; then
               echo "✅ Backend + Database ready (HTTP 200)"
